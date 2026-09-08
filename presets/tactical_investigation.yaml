@@ -1,0 +1,18 @@
+# Style preset: tactical_investigation
+# Injected into storyboard and motion planners for crime, military, aviation, and investigative documentaries.
+name: tactical_investigation
+visual_language: "tactical investigation board"
+palette:
+  - "dark slate navy"
+  - "crimson red accent"
+  - "neon radar cyan"
+  - "warning amber"
+texture:
+  - "archival dossier paper"
+  - "35mm grain"
+  - "radar grid"
+typography: "condensed technical bold sans"
+continuity_rules:
+  - "use 3d pushpins and adhesive tape mounts on all photos"
+  - "use 360-degree radar sweep on tactical map scenes"
+  - "use live yellow highlighter on investigative claims"

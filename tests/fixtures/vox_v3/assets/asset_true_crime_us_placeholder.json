@@ -1,0 +1,19 @@
+{
+  "schema_version": "asset_spec/1.0",
+  "asset_id": "asset_us_casefile_jdoe",
+  "file_path": "tests/fixtures/vox_v3/assets/asset_true_crime_us_placeholder.png",
+  "sha256": "4db8e15c3f3f99e8aa22b89efad40c131008a056e50b6e07a174f9a0caa94a72",
+  "source_type": "synthetic_fixture",
+  "identified_metadata": {
+    "canonical_name": "US Law Enforcement Case File",
+    "locale": "en-US",
+    "detected_placeholders": [
+      "J. DOE",
+      "JOHN DOE",
+      "METRO POLICE DEPARTMENT"
+    ],
+    "country": "United States"
+  },
+  "intended_claim_target": "C003_TRUE_CRIME_VN",
+  "mismatch_reason": "Locale/placeholder mismatch: foreign US placeholder template attached to Vietnamese documentary claim."
+}

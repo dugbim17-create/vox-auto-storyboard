@@ -1,0 +1,17 @@
+{
+  "schema_version": "asset_spec/1.0",
+  "asset_id": "asset_b747_candidate",
+  "file_path": "tests/fixtures/vox_v3/assets/asset_mh370_b747_mismatch.png",
+  "sha256": "ad29d9c3d8899dedc2de9a3b74e02d668e739d919ba2b2ce6f7a422c5096b85f",
+  "source_type": "synthetic_fixture",
+  "identified_metadata": {
+    "canonical_name": "Boeing 747-400",
+    "manufacturer": "Boeing",
+    "family": "747",
+    "variant": "400",
+    "engine_count": 4,
+    "airframe_type": "widebody_quadjet"
+  },
+  "intended_claim_target": "C001_MH370_AIRCRAFT",
+  "mismatch_reason": "Entity mismatch: candidate has 4 engines / Boeing 747, claim requires Boeing 777-200ER with 2 engines."
+}

@@ -1,0 +1,14 @@
+# Style preset: editorial_collage
+# Injected into storyboard/system prompts (P2-T04).
+name: editorial_collage
+visual_language: "editorial paper collage"
+palette:
+  - "off-white"
+  - "black"
+  - "red accent"
+texture:
+  - "paper grain"
+  - "halftone"
+typography: "bold editorial sans"
+continuity_rules:
+  - "keep the red accent on product"

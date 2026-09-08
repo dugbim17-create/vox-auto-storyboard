@@ -1,0 +1,150 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://auto-storyboard-vox.local/schemas/storyboard.schema.json",
+  "title": "Storyboard",
+  "description": "Storyboard JSON produced by the LLM planner. Follows MASTER_PLAN section 6.2 / 6.3.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "summary",
+    "style_anchor",
+    "characters",
+    "locations",
+    "scenes"
+  ],
+  "properties": {
+    "project_id": {
+      "type": ["string", "null"],
+      "description": "Optional project id; filled in by the orchestrator, not the LLM."
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Project summary."
+    },
+    "target_duration_seconds": {
+      "type": "number",
+      "minimum": 1,
+      "description": "Estimated target duration in seconds."
+    },
+    "style_anchor": {
+      "type": "object",
+      "required": ["visual_language", "palette", "texture", "typography"],
+      "additionalProperties": true,
+      "properties": {
+        "visual_language": { "type": "string", "minLength": 1 },
+        "palette": {
+          "type": ["array", "string"],
+          "description": "Color palette. Usually a list; a comma-joined string is normalized by the pipeline."
+        },
+        "texture": {
+          "type": ["array", "string"],
+          "description": "Textures. Usually a list; a comma-joined string is normalized by the pipeline."
+        },
+        "typography": { "type": "string", "minLength": 1 },
+        "continuity_rules": {
+          "type": ["array", "string"],
+          "description": "Continuity rules. Usually a list of strings; a single-string value is normalized by the pipeline."
+        }
+      }
+    },
+    "characters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": true,
+        "properties": {
+          "character_id": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1 },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "locations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": true,
+        "properties": {
+          "location_id": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1 },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "scenes": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 20,
+      "items": { "$ref": "#/definitions/Scene" }
+    }
+  },
+  "definitions": {
+    "Scene": {
+      "type": "object",
+      "required": [
+        "scene_id",
+        "order",
+        "script_span",
+        "narration_text",
+        "visual_summary",
+        "image_prompt",
+        "motion_template",
+        "estimated_duration_seconds"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "scene_id": { "type": "string", "pattern": "^scene_[0-9]+$" },
+        "order": { "type": "integer", "minimum": 1 },
+        "script_span": {
+          "type": "object",
+          "required": ["start_char", "end_char"],
+          "properties": {
+            "start_char": { "type": "integer", "minimum": 0 },
+            "end_char": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "narration_text": { "type": "string", "minLength": 1 },
+        "purpose": { "type": "string" },
+        "estimated_duration_seconds": { "type": "number", "minimum": 0.5 },
+        "visual_summary": { "type": "string", "minLength": 1 },
+        "image_prompt": { "type": "string", "minLength": 1 },
+        "negative_constraints": { "type": "array", "items": { "type": "string" } },
+        "motion_prompt": {
+          "type": ["string", "object"],
+          "description": "Motion description. May be a string or a structured object with per-layer keys (background_camera / subject / foreground_effect) — see motion_prompt.md."
+        },
+        "motion_template": { "type": "string", "minLength": 1 },
+        "transition_out": {
+          "type": ["string", "object"],
+          "description": "Transition to the next scene. String (template name) or object (structured spec)."
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Evidence IDs linked to this scene from StoryEvidencePack."
+        },
+        "must_show": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Mandatory entity IDs that must be visually represented."
+        },
+        "must_not_invent": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Unverified visual concepts forbidden in this scene."
+        },
+        "claim_risk": {
+          "type": "string",
+          "description": "Factual risk classification: low | medium | high."
+        },
+        "asset_policy": {
+          "type": "string",
+          "description": "Asset resolution policy: source_verified | licensed_search | ai_generated | local_owned | procedural."
+        }
+      }
+    }
+  }
+}

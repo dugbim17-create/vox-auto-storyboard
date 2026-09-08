@@ -1,0 +1,17 @@
+{
+  "schema_version": "asset_spec/1.0",
+  "asset_id": "asset_provider_logo_gibberish",
+  "file_path": "tests/fixtures/vox_v3/assets/asset_provider_logo_gibberish.png",
+  "sha256": "0b03ccafbc21875c18097b917709e95502957d9b765dc7ac07c20e2eaa4440a1",
+  "source_type": "synthetic_fixture",
+  "identified_metadata": {
+    "detected_donor_watermark": true,
+    "watermark_text": "DONOR_STOCK_WATERMARK_FORBIDDEN",
+    "detected_ai_gibberish": [
+      "GLOBAL FORUM SUMMIT 2026 WORLD AI INNOVATION",
+      "FLX-CONVERGENCE INTERNATIONALE FORUM DE SYNTHESIS"
+    ],
+    "contains_unverified_text": true
+  },
+  "mismatch_reason": "Asset quality rejection: forbidden donor watermark and hallucinated AI text detected."
+}

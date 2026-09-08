@@ -1,0 +1,238 @@
+{
+  "topic": "Kiến thức Việt Nam",
+  "accessed_at": "2026-08-10T00:00:00Z",
+  "questions": [
+    {
+      "question_id": "q001",
+      "order": 1,
+      "type": "multiple_choice_text",
+      "difficulty": "easy",
+      "question": "Thủ đô của Việt Nam là thành phố nào?",
+      "choices": [
+        {"id": "A", "text": "Hà Nội"},
+        {"id": "B", "text": "Huế"},
+        {"id": "C", "text": "Đà Nẵng"}
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Hà Nội",
+      "question_voice": "Thủ đô của Việt Nam là thành phố nào?",
+      "answer_voice": "Đáp án là Hà Nội.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [{
+        "source_id": "gov_constitution_capital",
+        "title": "Hiến pháp năm 2013 — Chương I: Chế độ chính trị",
+        "url": "https://chinhphu.vn/hien-phap-nam-2013/chuong-i-che-do-chinh-tri-10052990",
+        "publisher": "Cổng Thông tin điện tử Chính phủ",
+        "accessed_at": "2026-08-10T00:00:00Z",
+        "claim_supported": "Thủ đô nước Cộng hòa xã hội chủ nghĩa Việt Nam là Hà Nội.",
+        "authority": "official"
+      }]
+    },
+    {
+      "question_id": "q002",
+      "order": 2,
+      "type": "multiple_choice_text",
+      "difficulty": "easy",
+      "question": "Ngôi sao ở giữa Quốc kỳ Việt Nam có màu gì?",
+      "choices": [
+        {"id": "A", "text": "Trắng"},
+        {"id": "B", "text": "Vàng"},
+        {"id": "C", "text": "Xanh"}
+      ],
+      "correct_choice_id": "B",
+      "answer_text": "Vàng",
+      "question_voice": "Ngôi sao ở giữa Quốc kỳ Việt Nam có màu gì?",
+      "answer_voice": "Đáp án là Vàng.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [{
+        "source_id": "gov_national_flag",
+        "title": "Quốc kỳ, Quốc huy, Quốc ca, Tuyên ngôn",
+        "url": "https://chinhphu.vn/quoc-ky-quoc-huy-quoc-ca-tuyen-ngon-68378",
+        "publisher": "Cổng Thông tin điện tử Chính phủ",
+        "accessed_at": "2026-08-10T00:00:00Z",
+        "claim_supported": "Quốc kỳ nền đỏ, ở giữa có ngôi sao vàng năm cánh.",
+        "authority": "official"
+      }]
+    },
+    {
+      "question_id": "q003",
+      "order": 3,
+      "type": "multiple_choice_text",
+      "difficulty": "easy",
+      "question": "Vịnh Hạ Long nằm trong địa phận tỉnh nào?",
+      "choices": [
+        {"id": "A", "text": "Quảng Ninh"},
+        {"id": "B", "text": "Thanh Hóa"},
+        {"id": "C", "text": "Khánh Hòa"}
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Quảng Ninh",
+      "question_voice": "Vịnh Hạ Long nằm trong địa phận tỉnh nào?",
+      "answer_voice": "Đáp án là Quảng Ninh.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [{
+        "source_id": "unesco_ha_long",
+        "title": "Ha Long Bay - Cat Ba Archipelago",
+        "url": "https://whc.unesco.org/en/list/672",
+        "publisher": "UNESCO World Heritage Centre",
+        "accessed_at": "2026-08-10T00:00:00Z",
+        "claim_supported": "Ha Long Bay - Cat Ba Archipelago includes territory within Quang Ninh Province and Hai Phong City.",
+        "authority": "official"
+      }]
+    },
+    {
+      "question_id": "q004",
+      "order": 4,
+      "type": "multiple_choice_text",
+      "difficulty": "medium",
+      "question": "Đỉnh núi cao nhất Việt Nam có tên là gì?",
+      "choices": [
+        {"id": "A", "text": "Fansipan"},
+        {"id": "B", "text": "Bạch Mã"},
+        {"id": "C", "text": "Langbiang"}
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Fansipan",
+      "question_voice": "Đỉnh núi cao nhất Việt Nam có tên là gì?",
+      "answer_voice": "Đáp án là Fansipan.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [{
+        "source_id": "vietnam_tourism_fansipan",
+        "title": "Why Fansipan is a must-do in Sapa",
+        "url": "https://vietnam.travel/things-to-do/why-fansipan-must-do-sapa",
+        "publisher": "Viet Nam National Authority of Tourism",
+        "accessed_at": "2026-08-10T00:00:00Z",
+        "claim_supported": "Fansipan is the highest peak in Vietnam.",
+        "authority": "official"
+      }]
+    },
+    {
+      "question_id": "q005",
+      "order": 5,
+      "type": "multiple_choice_text",
+      "difficulty": "medium",
+      "question": "Nhạc cụ nào là trung tâm của Không gian văn hóa cồng chiêng Tây Nguyên?",
+      "choices": [
+        {"id": "A", "text": "Cồng chiêng"},
+        {"id": "B", "text": "Đàn bầu"},
+        {"id": "C", "text": "Sáo trúc"}
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Cồng chiêng",
+      "question_voice": "Nhạc cụ nào là trung tâm của Không gian văn hóa cồng chiêng Tây Nguyên?",
+      "answer_voice": "Đáp án là Cồng chiêng.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [{
+        "source_id": "unesco_gong_culture",
+        "title": "Space of gong culture",
+        "url": "https://ich.unesco.org/en/RL/space-of-gong-culture-00120",
+        "publisher": "UNESCO Intangible Cultural Heritage",
+        "accessed_at": "2026-08-10T00:00:00Z",
+        "claim_supported": "The gong is present in community rituals and is the main ceremonial instrument.",
+        "authority": "official"
+      }]
+    },
+    {
+      "question_id": "q006",
+      "order": 6,
+      "type": "multiple_choice_text",
+      "difficulty": "easy",
+      "question": "Áo dài là trang phục truyền thống nổi tiếng của quốc gia nào?",
+      "choices": [
+        {"id": "A", "text": "Việt Nam"},
+        {"id": "B", "text": "Nhật Bản"},
+        {"id": "C", "text": "Ấn Độ"}
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Việt Nam",
+      "question_voice": "Áo dài là trang phục truyền thống nổi tiếng của quốc gia nào?",
+      "answer_voice": "Đáp án là Việt Nam.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [{
+        "source_id": "vietnam_tourism_ao_dai",
+        "title": "All about ao dai: Vietnam's national dress",
+        "url": "https://vietnam.travel/things-to-do/ao-dai-vietnam",
+        "publisher": "Viet Nam National Authority of Tourism",
+        "accessed_at": "2026-08-10T00:00:00Z",
+        "claim_supported": "Áo dài is Vietnam's national dress.",
+        "authority": "official"
+      }]
+    },
+    {
+      "question_id": "q007",
+      "order": 7,
+      "type": "multiple_choice_text",
+      "difficulty": "easy",
+      "question": "Bánh chưng truyền thống thường có hình gì?",
+      "choices": [
+        {"id": "A", "text": "Hình vuông"},
+        {"id": "B", "text": "Hình tròn"},
+        {"id": "C", "text": "Hình tam giác"}
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Hình vuông",
+      "question_voice": "Bánh chưng truyền thống thường có hình gì?",
+      "answer_voice": "Đáp án là Hình vuông.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [{
+        "source_id": "vietnam_tourism_banh_chung",
+        "title": "Tet: Tradition, Reunion & Taste",
+        "url": "https://vietnam.travel/things-to-do/tet-tradition-reunion-taste",
+        "publisher": "Viet Nam National Authority of Tourism",
+        "accessed_at": "2026-08-10T00:00:00Z",
+        "claim_supported": "Banh chung is a sticky square cake.",
+        "authority": "official"
+      }]
+    },
+    {
+      "question_id": "q008",
+      "order": 8,
+      "type": "multiple_choice_text",
+      "difficulty": "easy",
+      "question": "Quốc khánh Việt Nam được kỷ niệm vào ngày nào?",
+      "choices": [
+        {"id": "A", "text": "Ngày 2 tháng 9"},
+        {"id": "B", "text": "Ngày 30 tháng 4"},
+        {"id": "C", "text": "Ngày 1 tháng 5"}
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Ngày 2 tháng 9",
+      "question_voice": "Quốc khánh Việt Nam được kỷ niệm vào ngày nào?",
+      "answer_voice": "Đáp án là Ngày 2 tháng 9.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [{
+        "source_id": "gov_constitution_national_day",
+        "title": "Hiến pháp năm 2013 — Chương I: Chế độ chính trị",
+        "url": "https://chinhphu.vn/hien-phap-nam-2013/chuong-i-che-do-chinh-tri-10052990",
+        "publisher": "Cổng Thông tin điện tử Chính phủ",
+        "accessed_at": "2026-08-10T00:00:00Z",
+        "claim_supported": "Quốc khánh nước Cộng hòa xã hội chủ nghĩa Việt Nam là ngày 2 tháng 9.",
+        "authority": "official"
+      }]
+    }
+  ]
+}

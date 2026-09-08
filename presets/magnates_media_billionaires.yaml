@@ -1,0 +1,18 @@
+# Style preset: magnates_media_billionaires
+# Injected into storyboard and motion planners for business empires, billionaire sagas, financial crimes, and luxury corporate exposés.
+name: magnates_media_billionaires
+visual_language: "cinematic dark noir financial exposé"
+palette:
+  - "matte carbon black"
+  - "luxury 24k metallic gold"
+  - "emerald currency green"
+  - "alarm crimson red"
+texture:
+  - "dark slate dossier with gold foil"
+  - "film noir vignette"
+  - "banknote micro-engraving grid"
+typography: "ultra-bold modern grotesque sans"
+continuity_rules:
+  - "use 3d metallic gold text for billion-dollar valuations"
+  - "use stacks of physical polymer currency with realistic shadow"
+  - "use red confidential wax seals and rubber stamps"

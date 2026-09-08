@@ -1,0 +1,18 @@
+# Style preset: true_crime_dossier
+# Injected into storyboard and motion planners for criminal investigations, court trials, forensic evidence, and underworld kingpins.
+name: true_crime_dossier
+visual_language: "tactical forensic police investigation board"
+palette:
+  - "corkboard warm sepia"
+  - "blood crimson red"
+  - "evidence marker yellow"
+  - "redacted bar pitch black"
+texture:
+  - "corkboard pinboard"
+  - "polaroid snapshot borders"
+  - "redacted document paper"
+typography: "typewriter courier mono and bold sans"
+continuity_rules:
+  - "use catenary red string linking suspects to crime scenes"
+  - "use polaroid photo cutouts with masking tape corners"
+  - "use rubber stamp XAC MINH HO SO on evidence files"

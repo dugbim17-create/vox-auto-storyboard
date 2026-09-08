@@ -1,0 +1,14 @@
+# Style preset: documentary
+# Injected into storyboard/system prompts (P2-T04).
+name: documentary
+visual_language: "cinematic documentary"
+palette:
+  - "deep teal"
+  - "charcoal"
+  - "warm amber"
+texture:
+  - "film grain"
+  - "subtle vignette"
+typography: "clean neutral sans"
+continuity_rules:
+  - "consistent natural lighting"

@@ -1,0 +1,1206 @@
+{
+  "topic": "Kiến thức Việt Nam",
+  "accessed_at": "2026-08-10T00:00:00Z",
+  "questions": [
+    {
+      "question_id": "q001",
+      "order": 1,
+      "type": "multiple_choice_text",
+      "difficulty": "easy",
+      "question": "Thủ đô của Việt Nam là thành phố nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Hà Nội"
+        },
+        {
+          "id": "B",
+          "text": "Huế"
+        },
+        {
+          "id": "C",
+          "text": "Đà Nẵng"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Hà Nội",
+      "question_voice": "Thủ đô của Việt Nam là thành phố nào?",
+      "answer_voice": "Đáp án là Hà Nội.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "gov_constitution_capital",
+          "title": "Hiến pháp năm 2013 — Chương I: Chế độ chính trị",
+          "url": "https://chinhphu.vn/hien-phap-nam-2013/chuong-i-che-do-chinh-tri-10052990",
+          "publisher": "Cổng Thông tin điện tử Chính phủ",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "Thủ đô nước Cộng hòa xã hội chủ nghĩa Việt Nam là Hà Nội.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q002",
+      "order": 2,
+      "type": "multiple_choice_text",
+      "difficulty": "easy",
+      "question": "Ngôi sao ở giữa Quốc kỳ Việt Nam có màu gì?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Trắng"
+        },
+        {
+          "id": "B",
+          "text": "Vàng"
+        },
+        {
+          "id": "C",
+          "text": "Xanh"
+        }
+      ],
+      "correct_choice_id": "B",
+      "answer_text": "Vàng",
+      "question_voice": "Ngôi sao ở giữa Quốc kỳ Việt Nam có màu gì?",
+      "answer_voice": "Đáp án là Vàng.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "gov_national_flag",
+          "title": "Quốc kỳ, Quốc huy, Quốc ca, Tuyên ngôn",
+          "url": "https://chinhphu.vn/quoc-ky-quoc-huy-quoc-ca-tuyen-ngon-68378",
+          "publisher": "Cổng Thông tin điện tử Chính phủ",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "Quốc kỳ nền đỏ, ở giữa có ngôi sao vàng năm cánh.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q003",
+      "order": 3,
+      "type": "multiple_choice_text",
+      "difficulty": "easy",
+      "question": "Vịnh Hạ Long nằm trong địa phận tỉnh nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Quảng Ninh"
+        },
+        {
+          "id": "B",
+          "text": "Thanh Hóa"
+        },
+        {
+          "id": "C",
+          "text": "Khánh Hòa"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Quảng Ninh",
+      "question_voice": "Vịnh Hạ Long nằm trong địa phận tỉnh nào?",
+      "answer_voice": "Đáp án là Quảng Ninh.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "unesco_ha_long",
+          "title": "Ha Long Bay - Cat Ba Archipelago",
+          "url": "https://whc.unesco.org/en/list/672",
+          "publisher": "UNESCO World Heritage Centre",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "Ha Long Bay - Cat Ba Archipelago includes territory within Quang Ninh Province and Hai Phong City.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q004",
+      "order": 4,
+      "type": "multiple_choice_text",
+      "difficulty": "medium",
+      "question": "Đỉnh núi cao nhất Việt Nam có tên là gì?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Fansipan"
+        },
+        {
+          "id": "B",
+          "text": "Bạch Mã"
+        },
+        {
+          "id": "C",
+          "text": "Langbiang"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Fansipan",
+      "question_voice": "Đỉnh núi cao nhất Việt Nam có tên là gì?",
+      "answer_voice": "Đáp án là Fansipan.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "vietnam_tourism_fansipan",
+          "title": "Why Fansipan is a must-do in Sapa",
+          "url": "https://vietnam.travel/things-to-do/why-fansipan-must-do-sapa",
+          "publisher": "Viet Nam National Authority of Tourism",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "Fansipan is the highest peak in Vietnam.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q005",
+      "order": 5,
+      "type": "multiple_choice_text",
+      "difficulty": "medium",
+      "question": "Nhạc cụ nào là trung tâm của Không gian văn hóa cồng chiêng Tây Nguyên?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Cồng chiêng"
+        },
+        {
+          "id": "B",
+          "text": "Đàn bầu"
+        },
+        {
+          "id": "C",
+          "text": "Sáo trúc"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Cồng chiêng",
+      "question_voice": "Nhạc cụ nào là trung tâm của Không gian văn hóa cồng chiêng Tây Nguyên?",
+      "answer_voice": "Đáp án là Cồng chiêng.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "unesco_gong_culture",
+          "title": "Space of gong culture",
+          "url": "https://ich.unesco.org/en/RL/space-of-gong-culture-00120",
+          "publisher": "UNESCO Intangible Cultural Heritage",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "The gong is present in community rituals and is the main ceremonial instrument.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q006",
+      "order": 6,
+      "type": "multiple_choice_text",
+      "difficulty": "easy",
+      "question": "Áo dài là trang phục truyền thống nổi tiếng của quốc gia nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Việt Nam"
+        },
+        {
+          "id": "B",
+          "text": "Nhật Bản"
+        },
+        {
+          "id": "C",
+          "text": "Ấn Độ"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Việt Nam",
+      "question_voice": "Áo dài là trang phục truyền thống nổi tiếng của quốc gia nào?",
+      "answer_voice": "Đáp án là Việt Nam.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "vietnam_tourism_ao_dai",
+          "title": "All about ao dai: Vietnam's national dress",
+          "url": "https://vietnam.travel/things-to-do/ao-dai-vietnam",
+          "publisher": "Viet Nam National Authority of Tourism",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "Áo dài is Vietnam's national dress.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q007",
+      "order": 7,
+      "type": "multiple_choice_text",
+      "difficulty": "easy",
+      "question": "Bánh chưng truyền thống thường có hình gì?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Hình vuông"
+        },
+        {
+          "id": "B",
+          "text": "Hình tròn"
+        },
+        {
+          "id": "C",
+          "text": "Hình tam giác"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Hình vuông",
+      "question_voice": "Bánh chưng truyền thống thường có hình gì?",
+      "answer_voice": "Đáp án là Hình vuông.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "vietnam_tourism_banh_chung",
+          "title": "Tet: Tradition, Reunion & Taste",
+          "url": "https://vietnam.travel/things-to-do/tet-tradition-reunion-taste",
+          "publisher": "Viet Nam National Authority of Tourism",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "Banh chung is a sticky square cake.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q008",
+      "order": 8,
+      "type": "multiple_choice_text",
+      "difficulty": "easy",
+      "question": "Quốc khánh Việt Nam được kỷ niệm vào ngày nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Ngày 2 tháng 9"
+        },
+        {
+          "id": "B",
+          "text": "Ngày 30 tháng 4"
+        },
+        {
+          "id": "C",
+          "text": "Ngày 1 tháng 5"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Ngày 2 tháng 9",
+      "question_voice": "Quốc khánh Việt Nam được kỷ niệm vào ngày nào?",
+      "answer_voice": "Đáp án là Ngày 2 tháng 9.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "gov_constitution_national_day",
+          "title": "Hiến pháp năm 2013 — Chương I: Chế độ chính trị",
+          "url": "https://chinhphu.vn/hien-phap-nam-2013/chuong-i-che-do-chinh-tri-10052990",
+          "publisher": "Cổng Thông tin điện tử Chính phủ",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "Quốc khánh nước Cộng hòa xã hội chủ nghĩa Việt Nam là ngày 2 tháng 9.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q009",
+      "order": 9,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Trang phục nào truyền cảm hứng cho áo dài hiện đại?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Áo ngũ thân"
+        },
+        {
+          "id": "B",
+          "text": "Áo tứ thân"
+        },
+        {
+          "id": "C",
+          "text": "Áo bà ba"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Áo ngũ thân",
+      "question_voice": "Trang phục nào truyền cảm hứng cho áo dài hiện đại?",
+      "answer_voice": "Đáp án là Áo ngũ thân.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "vietnam_tourism_ao_dai_009",
+          "title": "All about ao dai: Vietnam's national dress",
+          "url": "https://vietnam.travel/things-to-do/ao-dai-vietnam",
+          "publisher": "Viet Nam National Authority of Tourism",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "The five-part dress áo ngũ thân was the inspiration for the modern áo dài.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q010",
+      "order": 10,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Áo dài được đơn giản thành hai phần vào thập niên nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Thập niên 1930"
+        },
+        {
+          "id": "B",
+          "text": "Thập niên 1960"
+        },
+        {
+          "id": "C",
+          "text": "Thập niên 1990"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Thập niên 1930",
+      "question_voice": "Áo dài được đơn giản thành hai phần vào thập niên nào?",
+      "answer_voice": "Đáp án là Thập niên 1930.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "vietnam_tourism_ao_dai_010",
+          "title": "All about ao dai: Vietnam's national dress",
+          "url": "https://vietnam.travel/things-to-do/ao-dai-vietnam",
+          "publisher": "Viet Nam National Authority of Tourism",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "In the 1930s, the dress was simplified into two parts by artist Le Mur Nguyễn Cát Tường.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q011",
+      "order": 11,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Màu trắng của áo dài thường tượng trưng cho điều gì?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Sự thuần khiết và ngây thơ"
+        },
+        {
+          "id": "B",
+          "text": "Quyền lực hoàng gia"
+        },
+        {
+          "id": "C",
+          "text": "Tang lễ"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Sự thuần khiết và ngây thơ",
+      "question_voice": "Màu trắng của áo dài thường tượng trưng cho điều gì?",
+      "answer_voice": "Đáp án là Sự thuần khiết và ngây thơ.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "vietnam_tourism_ao_dai_011",
+          "title": "All about ao dai: Vietnam's national dress",
+          "url": "https://vietnam.travel/things-to-do/ao-dai-vietnam",
+          "publisher": "Viet Nam National Authority of Tourism",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "White symbolizes purity and innocence.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q012",
+      "order": 12,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Trong lễ cưới truyền thống Việt Nam, ai thường mặc áo dài cầu kỳ?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Cô dâu và chú rể"
+        },
+        {
+          "id": "B",
+          "text": "Chỉ nhạc công"
+        },
+        {
+          "id": "C",
+          "text": "Chỉ khách nước ngoài"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Cô dâu và chú rể",
+      "question_voice": "Trong lễ cưới truyền thống Việt Nam, ai thường mặc áo dài cầu kỳ?",
+      "answer_voice": "Đáp án là Cô dâu và chú rể.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "vietnam_tourism_ao_dai_012",
+          "title": "All about ao dai: Vietnam's national dress",
+          "url": "https://vietnam.travel/things-to-do/ao-dai-vietnam",
+          "publisher": "Viet Nam National Authority of Tourism",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "The bride and groom and wedding entourage wear elaborate áo dài at the traditional ceremony.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q013",
+      "order": 13,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Làng lụa nào gần Hà Nội được nguồn du lịch quốc gia gợi ý để may áo dài?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Vạn Phúc"
+        },
+        {
+          "id": "B",
+          "text": "Bát Tràng"
+        },
+        {
+          "id": "C",
+          "text": "Đào Thục"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Vạn Phúc",
+      "question_voice": "Làng lụa nào gần Hà Nội được nguồn du lịch quốc gia gợi ý để may áo dài?",
+      "answer_voice": "Đáp án là Vạn Phúc.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "vietnam_tourism_ao_dai_013",
+          "title": "All about ao dai: Vietnam's national dress",
+          "url": "https://vietnam.travel/things-to-do/ao-dai-vietnam",
+          "publisher": "Viet Nam National Authority of Tourism",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "Vạn Phúc silk village is suggested for silk shopping and áo dài tailoring.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q014",
+      "order": 14,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Những buổi múa rối nước đầu tiên được tổ chức ở đâu?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Ruộng lúa sau thu hoạch có nước"
+        },
+        {
+          "id": "B",
+          "text": "Sân băng"
+        },
+        {
+          "id": "C",
+          "text": "Nhà hát trên núi"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Ruộng lúa sau thu hoạch có nước",
+      "question_voice": "Những buổi múa rối nước đầu tiên được tổ chức ở đâu?",
+      "answer_voice": "Đáp án là Ruộng lúa sau thu hoạch có nước.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "vietnam_tourism_water_puppets_014",
+          "title": "All about Vietnamese water puppets",
+          "url": "https://vietnam.travel/things-to-do/vietnam-water-puppets",
+          "publisher": "Viet Nam National Authority of Tourism",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "The first water puppet shows were hosted in harvested rice fields filled with water.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q015",
+      "order": 15,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Nghệ nhân múa rối nước đứng ở đâu khi biểu diễn?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Trong nước"
+        },
+        {
+          "id": "B",
+          "text": "Trên mái nhà"
+        },
+        {
+          "id": "C",
+          "text": "Sau màn hình khô"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Trong nước",
+      "question_voice": "Nghệ nhân múa rối nước đứng ở đâu khi biểu diễn?",
+      "answer_voice": "Đáp án là Trong nước.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "vietnam_tourism_water_puppets_015",
+          "title": "All about Vietnamese water puppets",
+          "url": "https://vietnam.travel/things-to-do/vietnam-water-puppets",
+          "publisher": "Viet Nam National Authority of Tourism",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "Puppeteers stand in water throughout the show.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q016",
+      "order": 16,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Con rối nước truyền thống được làm từ loại gỗ nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Gỗ sung"
+        },
+        {
+          "id": "B",
+          "text": "Gỗ lim"
+        },
+        {
+          "id": "C",
+          "text": "Gỗ thông"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Gỗ sung",
+      "question_voice": "Con rối nước truyền thống được làm từ loại gỗ nào?",
+      "answer_voice": "Đáp án là Gỗ sung.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "vietnam_tourism_water_puppets_016",
+          "title": "All about Vietnamese water puppets",
+          "url": "https://vietnam.travel/things-to-do/vietnam-water-puppets",
+          "publisher": "Viet Nam National Authority of Tourism",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "Water puppets are made of buoyant fig wood and painted with lacquer.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q017",
+      "order": 17,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Nhân vật dẫn chuyện hài hước biểu tượng của múa rối nước là ai?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Tễu"
+        },
+        {
+          "id": "B",
+          "text": "Thạch Sanh"
+        },
+        {
+          "id": "C",
+          "text": "Chú Cuội"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Tễu",
+      "question_voice": "Nhân vật dẫn chuyện hài hước biểu tượng của múa rối nước là ai?",
+      "answer_voice": "Đáp án là Tễu.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "vietnam_tourism_water_puppets_017",
+          "title": "All about Vietnamese water puppets",
+          "url": "https://vietnam.travel/things-to-do/vietnam-water-puppets",
+          "publisher": "Viet Nam National Authority of Tourism",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "A traditional water puppet show starts with an introduction to Tễu, the comedic host.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q018",
+      "order": 18,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Ngày nay sân khấu múa rối nước thường là gì?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Bể nước"
+        },
+        {
+          "id": "B",
+          "text": "Sân cỏ"
+        },
+        {
+          "id": "C",
+          "text": "Sân băng"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Bể nước",
+      "question_voice": "Ngày nay sân khấu múa rối nước thường là gì?",
+      "answer_voice": "Đáp án là Bể nước.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "vietnam_tourism_water_puppets_018",
+          "title": "All about Vietnamese water puppets",
+          "url": "https://vietnam.travel/things-to-do/vietnam-water-puppets",
+          "publisher": "Viet Nam National Authority of Tourism",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "Today water puppet shows are presented in pools of water.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q019",
+      "order": 19,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Chợ nổi nổi tiếng nhất được nhắc đến tại Cần Thơ là chợ nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Cái Răng"
+        },
+        {
+          "id": "B",
+          "text": "Bến Thành"
+        },
+        {
+          "id": "C",
+          "text": "Đông Ba"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Cái Răng",
+      "question_voice": "Chợ nổi nổi tiếng nhất được nhắc đến tại Cần Thơ là chợ nào?",
+      "answer_voice": "Đáp án là Cái Răng.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "vietnam_tourism_can_tho_019",
+          "title": "Can Tho: A glimpse of river and garden",
+          "url": "https://vietnam.travel/things-to-do/can-tho-glimpse-river-and-garden",
+          "publisher": "Viet Nam National Authority of Tourism",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "Cai Rang Floating Market is a famous must-visit attraction in Can Tho.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q020",
+      "order": 20,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Chợ nổi Cái Răng nằm ở hạ lưu con sông nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Sông Cần Thơ"
+        },
+        {
+          "id": "B",
+          "text": "Sông Hương"
+        },
+        {
+          "id": "C",
+          "text": "Sông Hồng"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Sông Cần Thơ",
+      "question_voice": "Chợ nổi Cái Răng nằm ở hạ lưu con sông nào?",
+      "answer_voice": "Đáp án là Sông Cần Thơ.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "vietnam_tourism_can_tho_020",
+          "title": "Can Tho: A glimpse of river and garden",
+          "url": "https://vietnam.travel/things-to-do/can-tho-glimpse-river-and-garden",
+          "publisher": "Viet Nam National Authority of Tourism",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "Cai Rang Floating Market is located downstream of Can Tho River.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q021",
+      "order": 21,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Hoạt động mua bán tại chợ nổi Cái Răng diễn ra chủ yếu trên gì?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Thuyền"
+        },
+        {
+          "id": "B",
+          "text": "Tàu điện"
+        },
+        {
+          "id": "C",
+          "text": "Xe đạp"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Thuyền",
+      "question_voice": "Hoạt động mua bán tại chợ nổi Cái Răng diễn ra chủ yếu trên gì?",
+      "answer_voice": "Đáp án là Thuyền.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "vietnam_tourism_can_tho_021",
+          "title": "Can Tho: A glimpse of river and garden",
+          "url": "https://vietnam.travel/things-to-do/can-tho-glimpse-river-and-garden",
+          "publisher": "Viet Nam National Authority of Tourism",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "Trading activities at Cai Rang Floating Market take place on boats.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q022",
+      "order": 22,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Chợ nổi Cái Răng thường bắt đầu hoạt động khoảng mấy giờ sáng?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "4 giờ 30"
+        },
+        {
+          "id": "B",
+          "text": "8 giờ 30"
+        },
+        {
+          "id": "C",
+          "text": "11 giờ 30"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "4 giờ 30",
+      "question_voice": "Chợ nổi Cái Răng thường bắt đầu hoạt động khoảng mấy giờ sáng?",
+      "answer_voice": "Đáp án là 4 giờ 30.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "vietnam_tourism_can_tho_022",
+          "title": "Can Tho: A glimpse of river and garden",
+          "url": "https://vietnam.travel/things-to-do/can-tho-glimpse-river-and-garden",
+          "publisher": "Viet Nam National Authority of Tourism",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "Market activities usually take place from 4:30 to 8:00 a.m.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q023",
+      "order": 23,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Hệ karst Phong Nha–Kẻ Bàng bắt đầu hình thành khoảng bao nhiêu năm trước?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "400 triệu năm"
+        },
+        {
+          "id": "B",
+          "text": "4 triệu năm"
+        },
+        {
+          "id": "C",
+          "text": "40 nghìn năm"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "400 triệu năm",
+      "question_voice": "Hệ karst Phong Nha–Kẻ Bàng bắt đầu hình thành khoảng bao nhiêu năm trước?",
+      "answer_voice": "Đáp án là 400 triệu năm.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "unesco_phong_nha_023",
+          "title": "Phong Nha-Ke Bang National Park and Hin Nam No National Park",
+          "url": "https://whc.unesco.org/en/list/951",
+          "publisher": "UNESCO World Heritage Centre",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "The karst formations began developing around 400 million years ago.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q024",
+      "order": 24,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Phong Nha–Kẻ Bàng được mô tả là hệ karst quy mô lớn cổ nhất ở đâu?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Châu Á"
+        },
+        {
+          "id": "B",
+          "text": "Châu Phi"
+        },
+        {
+          "id": "C",
+          "text": "Châu Mỹ"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Châu Á",
+      "question_voice": "Phong Nha–Kẻ Bàng được mô tả là hệ karst quy mô lớn cổ nhất ở đâu?",
+      "answer_voice": "Đáp án là Châu Á.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "unesco_phong_nha_024",
+          "title": "Phong Nha-Ke Bang National Park and Hin Nam No National Park",
+          "url": "https://whc.unesco.org/en/list/951",
+          "publisher": "UNESCO World Heritage Centre",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "It is the oldest large-scale karst system in Asia.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q025",
+      "order": 25,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Phong Nha–Kẻ Bàng có hơn bao nhiêu kilômét hang động và đường nước ngầm đã được ghi nhận?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "220 km"
+        },
+        {
+          "id": "B",
+          "text": "22 km"
+        },
+        {
+          "id": "C",
+          "text": "2 km"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "220 km",
+      "question_voice": "Phong Nha–Kẻ Bàng có hơn bao nhiêu kilômét hang động và đường nước ngầm đã được ghi nhận?",
+      "answer_voice": "Đáp án là 220 km.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "unesco_phong_nha_025",
+          "title": "Phong Nha-Ke Bang National Park and Hin Nam No National Park",
+          "url": "https://whc.unesco.org/en/list/951",
+          "publisher": "UNESCO World Heritage Centre",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "Over 220 kilometres of caves and subterranean waterways have been documented.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q026",
+      "order": 26,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Hang Sơn Đoòng nổi bật với đặc điểm nào theo UNESCO?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Lối hang lớn nhất được ghi nhận"
+        },
+        {
+          "id": "B",
+          "text": "Hang băng dài nhất"
+        },
+        {
+          "id": "C",
+          "text": "Hang nhân tạo cổ nhất"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Lối hang lớn nhất được ghi nhận",
+      "question_voice": "Hang Sơn Đoòng nổi bật với đặc điểm nào theo UNESCO?",
+      "answer_voice": "Đáp án là Lối hang lớn nhất được ghi nhận.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "unesco_phong_nha_026",
+          "title": "Phong Nha-Ke Bang National Park and Hin Nam No National Park",
+          "url": "https://whc.unesco.org/en/list/951",
+          "publisher": "UNESCO World Heritage Centre",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "Son Doong contains the world’s largest documented cave passage in terms of diameter and continuity.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q027",
+      "order": 27,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Di sản Phong Nha–Kẻ Bàng và Hin Nam No nằm dọc biên giới giữa Việt Nam với quốc gia nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Lào"
+        },
+        {
+          "id": "B",
+          "text": "Thái Lan"
+        },
+        {
+          "id": "C",
+          "text": "Campuchia"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Lào",
+      "question_voice": "Di sản Phong Nha–Kẻ Bàng và Hin Nam No nằm dọc biên giới giữa Việt Nam với quốc gia nào?",
+      "answer_voice": "Đáp án là Lào.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "unesco_phong_nha_027",
+          "title": "Phong Nha-Ke Bang National Park and Hin Nam No National Park",
+          "url": "https://whc.unesco.org/en/list/951",
+          "publisher": "UNESCO World Heritage Centre",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "The transboundary property is located along the border between Viet Nam and Lao PDR.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q028",
+      "order": 28,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Văn hóa Đông Sơn được phát hiện vào năm nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "1924"
+        },
+        {
+          "id": "B",
+          "text": "1945"
+        },
+        {
+          "id": "C",
+          "text": "1975"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "1924",
+      "question_voice": "Văn hóa Đông Sơn được phát hiện vào năm nào?",
+      "answer_voice": "Đáp án là 1924.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "museum_dong_son_028",
+          "title": "The Dong Son culture, c. 2,500-2,000 BP",
+          "url": "https://baotanglichsu.vn/en/Articles/4193/the-dong-son-culture-c-2-500-2-000-bp",
+          "publisher": "Vietnam National Museum of History",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "The Dong Son Culture was discovered in 1924.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q029",
+      "order": 29,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Văn hóa Đông Sơn được phát hiện bên bờ con sông nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Sông Mã"
+        },
+        {
+          "id": "B",
+          "text": "Sông Hương"
+        },
+        {
+          "id": "C",
+          "text": "Sông Tiền"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Sông Mã",
+      "question_voice": "Văn hóa Đông Sơn được phát hiện bên bờ con sông nào?",
+      "answer_voice": "Đáp án là Sông Mã.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "museum_dong_son_029",
+          "title": "The Dong Son culture, c. 2,500-2,000 BP",
+          "url": "https://baotanglichsu.vn/en/Articles/4193/the-dong-son-culture-c-2-500-2-000-bp",
+          "publisher": "Vietnam National Museum of History",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "Dong Son Culture was discovered on the riverbank of the Ma River.",
+          "authority": "official"
+        }
+      ]
+    },
+    {
+      "question_id": "q030",
+      "order": 30,
+      "type": "multiple_choice_text",
+      "difficulty": "mixed",
+      "question": "Hiện vật nổi tiếng thể hiện kỹ thuật đúc đồng Đông Sơn là gì?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Trống đồng"
+        },
+        {
+          "id": "B",
+          "text": "Kiếm thép"
+        },
+        {
+          "id": "C",
+          "text": "Tượng đá"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Trống đồng",
+      "question_voice": "Hiện vật nổi tiếng thể hiện kỹ thuật đúc đồng Đông Sơn là gì?",
+      "answer_voice": "Đáp án là Trống đồng.",
+      "countdown_seconds": 10,
+      "template_id": "text_mcq",
+      "time_sensitive": false,
+      "as_of_date": null,
+      "fact_sources": [
+        {
+          "source_id": "museum_dong_son_030",
+          "title": "The Dong Son culture, c. 2,500-2,000 BP",
+          "url": "https://baotanglichsu.vn/en/Articles/4193/the-dong-son-culture-c-2-500-2-000-bp",
+          "publisher": "Vietnam National Museum of History",
+          "accessed_at": "2026-08-10T00:00:00Z",
+          "claim_supported": "The famous bronze drums demonstrate the sophisticated metallurgy and bronze casting of Dong Son culture.",
+          "authority": "official"
+        }
+      ]
+    }
+  ]
+}

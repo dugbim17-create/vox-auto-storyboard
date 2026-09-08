@@ -1,0 +1,888 @@
+{
+  "schema_version": "quiz_project_v1",
+  "title": "Thử thách kiến thức Việt Nam",
+  "language": "vi",
+  "question_count": 30,
+  "seconds_per_question": 2,
+  "theme_id": "vox_quiz_01",
+  "intro": {
+    "title": "THỬ THÁCH KIẾN THỨC VIỆT NAM",
+    "subtitle": "30 câu hỏi • Chọn một đáp án đúng"
+  },
+  "questions": [
+    {
+      "question_id": "q001",
+      "order": 1,
+      "type": "multiple_choice_text",
+      "question": "Thủ đô của Việt Nam là thành phố nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Hà Nội"
+        },
+        {
+          "id": "B",
+          "text": "Huế"
+        },
+        {
+          "id": "C",
+          "text": "Đà Nẵng"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Hà Nội",
+      "question_voice": "Thủ đô của Việt Nam là thành phố nào?",
+      "answer_voice": "Đáp án đúng là Hà Nội.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:geography"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q002",
+      "order": 2,
+      "type": "multiple_choice_text",
+      "question": "Quốc kỳ Việt Nam có ngôi sao màu gì?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Trắng"
+        },
+        {
+          "id": "B",
+          "text": "Vàng"
+        },
+        {
+          "id": "C",
+          "text": "Xanh"
+        }
+      ],
+      "correct_choice_id": "B",
+      "answer_text": "Vàng",
+      "question_voice": "Quốc kỳ Việt Nam có ngôi sao màu gì?",
+      "answer_voice": "Đáp án đúng là màu vàng.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:civics"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q003",
+      "order": 3,
+      "type": "multiple_choice_text",
+      "question": "Vịnh Hạ Long thuộc tỉnh nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Quảng Ninh"
+        },
+        {
+          "id": "B",
+          "text": "Thanh Hóa"
+        },
+        {
+          "id": "C",
+          "text": "Khánh Hòa"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Quảng Ninh",
+      "question_voice": "Vịnh Hạ Long thuộc tỉnh nào?",
+      "answer_voice": "Đáp án đúng là Quảng Ninh.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:geography"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q004",
+      "order": 4,
+      "type": "multiple_choice_text",
+      "question": "Dãy núi cao nhất Việt Nam có tên là gì?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Trường Sơn"
+        },
+        {
+          "id": "B",
+          "text": "Hoàng Liên Sơn"
+        },
+        {
+          "id": "C",
+          "text": "Tam Đảo"
+        }
+      ],
+      "correct_choice_id": "B",
+      "answer_text": "Hoàng Liên Sơn",
+      "question_voice": "Dãy núi cao nhất Việt Nam có tên là gì?",
+      "answer_voice": "Đáp án đúng là Hoàng Liên Sơn.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:geography"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q005",
+      "order": 5,
+      "type": "multiple_choice_text",
+      "question": "Nhạc cụ nào thường gắn với văn hóa Tây Nguyên?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Cồng chiêng"
+        },
+        {
+          "id": "B",
+          "text": "Đàn bầu"
+        },
+        {
+          "id": "C",
+          "text": "Sáo trúc"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Cồng chiêng",
+      "question_voice": "Nhạc cụ nào thường gắn với văn hóa Tây Nguyên?",
+      "answer_voice": "Đáp án đúng là cồng chiêng.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:culture"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q006",
+      "order": 6,
+      "type": "multiple_choice_text",
+      "question": "Áo dài là trang phục truyền thống nổi tiếng của quốc gia nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Việt Nam"
+        },
+        {
+          "id": "B",
+          "text": "Nhật Bản"
+        },
+        {
+          "id": "C",
+          "text": "Ấn Độ"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Việt Nam",
+      "question_voice": "Áo dài là trang phục truyền thống nổi tiếng của quốc gia nào?",
+      "answer_voice": "Đáp án đúng là Việt Nam.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:culture"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q007",
+      "order": 7,
+      "type": "multiple_choice_text",
+      "question": "Phở thường được ăn cùng loại rau thơm nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Húng quế"
+        },
+        {
+          "id": "B",
+          "text": "Lá sen"
+        },
+        {
+          "id": "C",
+          "text": "Lá chè"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Húng quế",
+      "question_voice": "Phở thường được ăn cùng loại rau thơm nào?",
+      "answer_voice": "Đáp án đúng là húng quế.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:cuisine"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q008",
+      "order": 8,
+      "type": "multiple_choice_text",
+      "question": "Bánh chưng truyền thống thường có hình gì?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Hình tròn"
+        },
+        {
+          "id": "B",
+          "text": "Hình vuông"
+        },
+        {
+          "id": "C",
+          "text": "Hình tam giác"
+        }
+      ],
+      "correct_choice_id": "B",
+      "answer_text": "Hình vuông",
+      "question_voice": "Bánh chưng truyền thống thường có hình gì?",
+      "answer_voice": "Đáp án đúng là hình vuông.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:cuisine"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q009",
+      "order": 9,
+      "type": "multiple_choice_text",
+      "question": "Sông Hương chảy qua thành phố nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Huế"
+        },
+        {
+          "id": "B",
+          "text": "Cần Thơ"
+        },
+        {
+          "id": "C",
+          "text": "Hải Phòng"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Huế",
+      "question_voice": "Sông Hương chảy qua thành phố nào?",
+      "answer_voice": "Đáp án đúng là Huế.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:geography"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q010",
+      "order": 10,
+      "type": "multiple_choice_text",
+      "question": "Chợ nổi Cái Răng thuộc thành phố nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Cần Thơ"
+        },
+        {
+          "id": "B",
+          "text": "Đà Lạt"
+        },
+        {
+          "id": "C",
+          "text": "Vinh"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Cần Thơ",
+      "question_voice": "Chợ nổi Cái Răng thuộc thành phố nào?",
+      "answer_voice": "Đáp án đúng là Cần Thơ.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:geography"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q011",
+      "order": 11,
+      "type": "multiple_choice_text",
+      "question": "Hoa sen thường được nhắc đến như biểu tượng của phẩm chất nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Thanh khiết"
+        },
+        {
+          "id": "B",
+          "text": "Ồn ào"
+        },
+        {
+          "id": "C",
+          "text": "Vội vàng"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Thanh khiết",
+      "question_voice": "Hoa sen thường được nhắc đến như biểu tượng của phẩm chất nào?",
+      "answer_voice": "Đáp án đúng là thanh khiết.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:culture"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q012",
+      "order": 12,
+      "type": "multiple_choice_text",
+      "question": "Tết Trung Thu thường gắn với loại bánh nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Bánh mì"
+        },
+        {
+          "id": "B",
+          "text": "Bánh trung thu"
+        },
+        {
+          "id": "C",
+          "text": "Bánh xèo"
+        }
+      ],
+      "correct_choice_id": "B",
+      "answer_text": "Bánh trung thu",
+      "question_voice": "Tết Trung Thu thường gắn với loại bánh nào?",
+      "answer_voice": "Đáp án đúng là bánh trung thu.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:culture"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q013",
+      "order": 13,
+      "type": "multiple_choice_text",
+      "question": "Đà Lạt nổi tiếng với khí hậu như thế nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Mát mẻ"
+        },
+        {
+          "id": "B",
+          "text": "Khô nóng quanh năm"
+        },
+        {
+          "id": "C",
+          "text": "Băng giá quanh năm"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Mát mẻ",
+      "question_voice": "Đà Lạt nổi tiếng với khí hậu như thế nào?",
+      "answer_voice": "Đáp án đúng là mát mẻ.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:geography"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q014",
+      "order": 14,
+      "type": "multiple_choice_text",
+      "question": "Cầu Rồng là công trình nổi tiếng ở thành phố nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Đà Nẵng"
+        },
+        {
+          "id": "B",
+          "text": "Hà Giang"
+        },
+        {
+          "id": "C",
+          "text": "Ninh Bình"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Đà Nẵng",
+      "question_voice": "Cầu Rồng là công trình nổi tiếng ở thành phố nào?",
+      "answer_voice": "Đáp án đúng là Đà Nẵng.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:geography"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q015",
+      "order": 15,
+      "type": "multiple_choice_text",
+      "question": "Đồng bằng sông Cửu Long nằm chủ yếu ở miền nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Miền Bắc"
+        },
+        {
+          "id": "B",
+          "text": "Miền Trung"
+        },
+        {
+          "id": "C",
+          "text": "Miền Nam"
+        }
+      ],
+      "correct_choice_id": "C",
+      "answer_text": "Miền Nam",
+      "question_voice": "Đồng bằng sông Cửu Long nằm chủ yếu ở miền nào?",
+      "answer_voice": "Đáp án đúng là miền Nam.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:geography"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q016",
+      "order": 16,
+      "type": "multiple_choice_text",
+      "question": "Món cao lầu thường gắn với địa danh nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Hội An"
+        },
+        {
+          "id": "B",
+          "text": "Sa Pa"
+        },
+        {
+          "id": "C",
+          "text": "Móng Cái"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Hội An",
+      "question_voice": "Món cao lầu thường gắn với địa danh nào?",
+      "answer_voice": "Đáp án đúng là Hội An.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:cuisine"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q017",
+      "order": 17,
+      "type": "multiple_choice_text",
+      "question": "Ruộng bậc thang thường xuất hiện ở vùng địa hình nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Miền núi"
+        },
+        {
+          "id": "B",
+          "text": "Ngoài khơi"
+        },
+        {
+          "id": "C",
+          "text": "Sa mạc"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Miền núi",
+      "question_voice": "Ruộng bậc thang thường xuất hiện ở vùng địa hình nào?",
+      "answer_voice": "Đáp án đúng là miền núi.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:geography"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q018",
+      "order": 18,
+      "type": "multiple_choice_text",
+      "question": "Nón lá truyền thống thường được làm từ vật liệu nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Lá cọ hoặc lá nón"
+        },
+        {
+          "id": "B",
+          "text": "Thủy tinh"
+        },
+        {
+          "id": "C",
+          "text": "Sắt"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Lá cọ hoặc lá nón",
+      "question_voice": "Nón lá truyền thống thường được làm từ vật liệu nào?",
+      "answer_voice": "Đáp án đúng là lá cọ hoặc lá nón.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:culture"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q019",
+      "order": 19,
+      "type": "multiple_choice_text",
+      "question": "Văn Miếu Quốc Tử Giám nằm ở đâu?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Hà Nội"
+        },
+        {
+          "id": "B",
+          "text": "Phú Quốc"
+        },
+        {
+          "id": "C",
+          "text": "Buôn Ma Thuột"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Hà Nội",
+      "question_voice": "Văn Miếu Quốc Tử Giám nằm ở đâu?",
+      "answer_voice": "Đáp án đúng là Hà Nội.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:history"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q020",
+      "order": 20,
+      "type": "multiple_choice_text",
+      "question": "Trống đồng Đông Sơn là hiện vật tiêu biểu của lĩnh vực nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Văn hóa khảo cổ"
+        },
+        {
+          "id": "B",
+          "text": "Hàng không"
+        },
+        {
+          "id": "C",
+          "text": "Công nghệ số"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Văn hóa khảo cổ",
+      "question_voice": "Trống đồng Đông Sơn là hiện vật tiêu biểu của lĩnh vực nào?",
+      "answer_voice": "Đáp án đúng là văn hóa khảo cổ.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:history"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q021",
+      "order": 21,
+      "type": "multiple_choice_text",
+      "question": "Cà phê là nông sản nổi tiếng của vùng nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Tây Nguyên"
+        },
+        {
+          "id": "B",
+          "text": "Vịnh Bắc Bộ"
+        },
+        {
+          "id": "C",
+          "text": "Quần đảo ngoài khơi"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Tây Nguyên",
+      "question_voice": "Cà phê là nông sản nổi tiếng của vùng nào?",
+      "answer_voice": "Đáp án đúng là Tây Nguyên.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:agriculture"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q022",
+      "order": 22,
+      "type": "multiple_choice_text",
+      "question": "Múa rối nước thường biểu diễn trên sân khấu đặc biệt nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Mặt nước"
+        },
+        {
+          "id": "B",
+          "text": "Sân băng"
+        },
+        {
+          "id": "C",
+          "text": "Trên cây"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Mặt nước",
+      "question_voice": "Múa rối nước thường biểu diễn trên sân khấu đặc biệt nào?",
+      "answer_voice": "Đáp án đúng là mặt nước.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:culture"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q023",
+      "order": 23,
+      "type": "multiple_choice_text",
+      "question": "Biển Nha Trang thuộc tỉnh nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Khánh Hòa"
+        },
+        {
+          "id": "B",
+          "text": "Lào Cai"
+        },
+        {
+          "id": "C",
+          "text": "Bắc Kạn"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Khánh Hòa",
+      "question_voice": "Biển Nha Trang thuộc tỉnh nào?",
+      "answer_voice": "Đáp án đúng là Khánh Hòa.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:geography"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q024",
+      "order": 24,
+      "type": "multiple_choice_text",
+      "question": "Thành phố Hải Phòng thường được gọi là thành phố gì?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Hoa phượng đỏ"
+        },
+        {
+          "id": "B",
+          "text": "Hoa anh đào"
+        },
+        {
+          "id": "C",
+          "text": "Hoa tulip"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Hoa phượng đỏ",
+      "question_voice": "Thành phố Hải Phòng thường được gọi là thành phố gì?",
+      "answer_voice": "Đáp án đúng là thành phố hoa phượng đỏ.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:culture"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q025",
+      "order": 25,
+      "type": "multiple_choice_text",
+      "question": "Đàn bầu truyền thống có bao nhiêu dây chính?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Một dây"
+        },
+        {
+          "id": "B",
+          "text": "Hai dây"
+        },
+        {
+          "id": "C",
+          "text": "Sáu dây"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Một dây",
+      "question_voice": "Đàn bầu truyền thống có bao nhiêu dây chính?",
+      "answer_voice": "Đáp án đúng là một dây.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:culture"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q026",
+      "order": 26,
+      "type": "multiple_choice_text",
+      "question": "Màu đỏ trên quốc kỳ Việt Nam làm nền cho hình nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Ngôi sao vàng"
+        },
+        {
+          "id": "B",
+          "text": "Mặt trăng trắng"
+        },
+        {
+          "id": "C",
+          "text": "Bông hoa xanh"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Ngôi sao vàng",
+      "question_voice": "Màu đỏ trên quốc kỳ Việt Nam làm nền cho hình nào?",
+      "answer_voice": "Đáp án đúng là ngôi sao vàng.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:civics"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q027",
+      "order": 27,
+      "type": "multiple_choice_text",
+      "question": "Hồ Gươm còn được gọi bằng tên nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Hồ Hoàn Kiếm"
+        },
+        {
+          "id": "B",
+          "text": "Hồ Xuân Hương"
+        },
+        {
+          "id": "C",
+          "text": "Hồ Ba Bể"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Hồ Hoàn Kiếm",
+      "question_voice": "Hồ Gươm còn được gọi bằng tên nào?",
+      "answer_voice": "Đáp án đúng là Hồ Hoàn Kiếm.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:geography"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q028",
+      "order": 28,
+      "type": "multiple_choice_text",
+      "question": "Món bún bò thường gắn với địa phương nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Huế"
+        },
+        {
+          "id": "B",
+          "text": "Hạ Long"
+        },
+        {
+          "id": "C",
+          "text": "Tây Ninh"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Huế",
+      "question_voice": "Món bún bò thường gắn với địa phương nào?",
+      "answer_voice": "Đáp án đúng là Huế.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:cuisine"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q029",
+      "order": 29,
+      "type": "multiple_choice_text",
+      "question": "Hang Sơn Đoòng nằm trong vườn quốc gia nào?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Phong Nha - Kẻ Bàng"
+        },
+        {
+          "id": "B",
+          "text": "Cúc Phương"
+        },
+        {
+          "id": "C",
+          "text": "Ba Vì"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Phong Nha - Kẻ Bàng",
+      "question_voice": "Hang Sơn Đoòng nằm trong vườn quốc gia nào?",
+      "answer_voice": "Đáp án đúng là Phong Nha - Kẻ Bàng.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:geography"
+      ],
+      "countdown_seconds": 2
+    },
+    {
+      "question_id": "q030",
+      "order": 30,
+      "type": "multiple_choice_text",
+      "question": "Di sản thiên nhiên thế giới nào của Việt Nam nổi bật với hàng nghìn đảo đá vôi giữa mặt nước xanh?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Vịnh Hạ Long"
+        },
+        {
+          "id": "B",
+          "text": "Phố cổ Hội An"
+        },
+        {
+          "id": "C",
+          "text": "Hoàng thành Thăng Long"
+        }
+      ],
+      "correct_choice_id": "A",
+      "answer_text": "Vịnh Hạ Long",
+      "question_voice": "Di sản thiên nhiên thế giới nào của Việt Nam nổi bật với hàng nghìn đảo đá vôi giữa mặt nước xanh?",
+      "answer_voice": "Đáp án đúng là Vịnh Hạ Long.",
+      "template_id": "text_mcq",
+      "fact_sources": [
+        "local_fixture:geography"
+      ],
+      "countdown_seconds": 2
+    }
+  ],
+  "outro": {
+    "title": "BẠN ĐÚNG BAO NHIÊU CÂU?",
+    "cta": "Ghi lại điểm số và thử thách bạn bè!"
+  }
+}

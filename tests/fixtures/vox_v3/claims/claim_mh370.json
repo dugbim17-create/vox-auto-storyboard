@@ -1,0 +1,34 @@
+{
+  "schema_version": "story_evidence/1.0",
+  "claim_id": "C001_MH370_AIRCRAFT",
+  "claim_text": "Chuyến bay MH370 của Malaysia Airlines mất tích là loại máy bay Boeing 777-200ER, đăng ký 9M-MRO.",
+  "claim_type": "confirmed",
+  "date": "2014-03-08",
+  "place": "Kuala Lumpur - Beijing route",
+  "entities": [
+    {
+      "entity_id": "aircraft_mh370",
+      "canonical_name": "Boeing 777-200ER",
+      "manufacturer": "Boeing",
+      "family": "777",
+      "variant": "200ER",
+      "engine_count": 2,
+      "operator": "Malaysia Airlines",
+      "registration": "9M-MRO",
+      "aliases": [
+        "9M-MRO",
+        "Boeing 777",
+        "B777-200ER"
+      ]
+    }
+  ],
+  "must_show": [
+    "aircraft_mh370"
+  ],
+  "must_not_invent": [
+    "four_engine_aircraft",
+    "cockpit_fire_visual",
+    "unconfirmed_crash_site"
+  ],
+  "confidence": 1.0
+}

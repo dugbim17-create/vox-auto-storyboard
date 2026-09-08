@@ -1,0 +1,31 @@
+{
+  "schema_version": "story_evidence/1.0",
+  "claim_id": "C002_SCB_VIETNAM",
+  "claim_text": "Ngân hàng Thương mại Cổ phần Sài Gòn (SCB) tại Việt Nam trong vụ đại án Vạn Thịnh Phát.",
+  "claim_type": "confirmed",
+  "date": "2022-10-08",
+  "place": "TP. Hồ Chí Minh, Việt Nam",
+  "entities": [
+    {
+      "entity_id": "institution_scb_vn",
+      "canonical_name": "Saigon Commercial Bank",
+      "vietnamese_name": "Ngân hàng Thương mại Cổ phần Sài Gòn",
+      "country": "Vietnam",
+      "jurisdiction": "VN",
+      "headquarters": "TP. Hồ Chí Minh, Việt Nam",
+      "ticker_alias": "SCB",
+      "forbidden_aliases": [
+        "Siam Commercial Bank",
+        "Standard Chartered Bank",
+        "SCB Thailand"
+      ]
+    }
+  ],
+  "must_show": [
+    "institution_scb_vn"
+  ],
+  "must_not_invent": [
+    "foreign_bank_headquarters"
+  ],
+  "confidence": 1.0
+}

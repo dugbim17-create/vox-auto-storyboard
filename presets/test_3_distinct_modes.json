@@ -1,0 +1,102 @@
+[
+  {
+    "id": "q1_4cards",
+    "question": "WHO IS PREGNANT?",
+    "cards": [
+      {
+        "id": "1",
+        "label": "DRINKING WINE",
+        "image_path": "assets/quizmystra_4cards/p1_wine.jpg"
+      },
+      {
+        "id": "2",
+        "label": "ESPRESSO SHOTS",
+        "image_path": "assets/quizmystra_4cards/p2_coffee.jpg"
+      },
+      {
+        "id": "3",
+        "label": "PICKLES & ICE CREAM",
+        "image_path": "assets/quizmystra_4cards/p3_cravings.jpg"
+      },
+      {
+        "id": "4",
+        "label": "RAW SUSHIS",
+        "image_path": "assets/quizmystra_4cards/p4_sushi.jpg"
+      }
+    ],
+    "correct_option": "3",
+    "explanation_text": "ANSWER: PERSON #3! SHE HAS STRANGE PREGNANCY CRAVINGS!",
+    "voice_q": "Riddle 1: Look closely at these four women. Only one of them is pregnant! Can you spot who it is?",
+    "voice_a": "Number 3 is pregnant! Pickles and ice cream is a classic pregnancy craving!",
+    "countdown_seconds": 6.0
+  },
+  {
+    "id": "q2_visual_riddle",
+    "question": "WHICH LAB HAS A DANGEROUS CHEMICAL LEAK?",
+    "scene_image": "assets/riddles/riddle_02_laboratory.jpg",
+    "options": [
+      "A",
+      "B",
+      "C"
+    ],
+    "option_coords": [
+      [
+        380,
+        250
+      ],
+      [
+        960,
+        250
+      ],
+      [
+        1540,
+        250
+      ]
+    ],
+    "correct_option": "B",
+    "clue_highlight": {
+      "coord": [
+        960,
+        680
+      ],
+      "radius": 90,
+      "arrow_from": [
+        960,
+        520
+      ]
+    },
+    "explanation_text": "ANSWER: STATION B! ACID VAPOR IS MELTING THE SENSOR!",
+    "voice_q": "Riddle 2: In this high-tech lab, one workstation has a dangerous chemical leak! Which station is it?",
+    "voice_a": "Station B! Look at the green acid vapor dissolving the sensor on the table!",
+    "countdown_seconds": 6.0
+  },
+  {
+    "id": "q3_photo_reveal",
+    "question": "WHAT IS THE CAPITAL OF FRANCE?",
+    "universe": "CAPITAL CITY",
+    "choices": [
+      {
+        "id": "A",
+        "text": "Lyon"
+      },
+      {
+        "id": "B",
+        "text": "Marseille"
+      },
+      {
+        "id": "C",
+        "text": "Paris"
+      },
+      {
+        "id": "D",
+        "text": "Nice"
+      }
+    ],
+    "correct_id": "C",
+    "answer_text": "PARIS",
+    "reveal_image_path": "assets/landmarks/paris.jpg",
+    "voice_q": "Question 3: Geography test! What is the official capital city of France?",
+    "voice_a": "Of course, it's Paris, the City of Light!",
+    "countdown_seconds": 4.0
+  }
+]

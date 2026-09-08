@@ -1,0 +1,50 @@
+{
+  "project_id": "prj_e2e_fixture",
+  "title": "Hành tinh bí ẩn",
+  "aspect_ratio": "16:9",
+  "fps": 30,
+  "scenes": [
+    {
+      "scene_id": "scene_001",
+      "order": 1,
+      "narration": "Trong một đêm không trăng, chúng tôi phát hiện một hành tinh bí ẩn ngoài rìa thiên hà.",
+      "headline": "Hành tinh bí ẩn",
+      "template": "subject_slide_headline_pop",
+      "characters": ["narrator"],
+      "setting": "deep space",
+      "visual_seed": 1,
+      "duration_ms": 3000
+    },
+    {
+      "scene_id": "scene_002",
+      "order": 2,
+      "narration": "Bề mặt nó phủ đầy những tinh thể phát sáng xanh lam, lấp lánh như ngàn vì sao rơi.",
+      "headline": "Tinh thể phát sáng",
+      "template": "subject_zoom_headline_reveal",
+      "characters": ["narrator"],
+      "setting": "crystal field",
+      "visual_seed": 2,
+      "duration_ms": 3000
+    },
+    {
+      "scene_id": "scene_003",
+      "order": 3,
+      "narration": "Các nhà khoa học đặt tên cho nó là Aurora, một thế giới chưa từng có trong bản đồ vũ trụ.",
+      "headline": "Aurora",
+      "template": "subject_dolly_headline_slide",
+      "characters": ["narrator"],
+      "setting": "aurora world",
+      "visual_seed": 3,
+      "duration_ms": 3000
+    }
+  ],
+  "characters": [
+    {
+      "character_id": "narrator",
+      "name": "Người dẫn chuyện",
+      "visual_anchor": "astronaut with helmet"
+    }
+  ],
+  "palette": ["#0a1128", "#001f54", "#034078", "#1282a2", "#fefcfb"],
+  "style_preset": "editorial_collage"
+}

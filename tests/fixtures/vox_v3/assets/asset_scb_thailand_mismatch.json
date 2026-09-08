@@ -1,0 +1,16 @@
+{
+  "schema_version": "asset_spec/1.0",
+  "asset_id": "asset_scb_thailand_candidate",
+  "file_path": "tests/fixtures/vox_v3/assets/asset_scb_thailand_mismatch.png",
+  "sha256": "00a5a24a9beb711d6e54c807c8fe2d1177a70bfc2916ca9c11ac5f2e4060032d",
+  "source_type": "synthetic_fixture",
+  "identified_metadata": {
+    "canonical_name": "Siam Commercial Bank",
+    "country": "Thailand",
+    "jurisdiction": "TH",
+    "ticker_alias": "SCB",
+    "headquarters": "Bangkok, Thailand"
+  },
+  "intended_claim_target": "C002_SCB_VIETNAM",
+  "mismatch_reason": "Entity mismatch: candidate is Siam Commercial Bank (Thailand/TH), claim requires Saigon Commercial Bank (Vietnam/VN)."
+}

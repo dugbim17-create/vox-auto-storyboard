@@ -1,0 +1,13 @@
+# Style preset: minimal_motion
+# Injected into storyboard/system prompts (P2-T04).
+name: minimal_motion
+visual_language: "minimal flat design"
+palette:
+  - "white"
+  - "soft gray"
+  - "single accent"
+texture:
+  - "flat matte"
+typography: "geometric sans"
+continuity_rules:
+  - "restrained motion amplitude"

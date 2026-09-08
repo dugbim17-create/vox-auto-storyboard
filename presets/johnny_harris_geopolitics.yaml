@@ -1,0 +1,18 @@
+# Style preset: johnny_harris_geopolitics
+# Injected into storyboard and motion planners for geopolitics, territory disputes, maps, and investigative travel.
+name: johnny_harris_geopolitics
+visual_language: "tactical terrain map and archival atlas"
+palette:
+  - "vintage parchment cream"
+  - "crimson border red"
+  - "deep topo ocean navy"
+  - "golden border amber"
+texture:
+  - "antique folded map grid"
+  - "35mm grain"
+  - "catenary route lines"
+typography: "condensed technical bold serif"
+continuity_rules:
+  - "use animated flight route dashed lines and map markers"
+  - "use yellow highlighter sweep on historical border treaties"
+  - "use 3d pushpins on capital cities and conflict zones"

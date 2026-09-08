@@ -1,0 +1,42 @@
+{
+  "schema_version": "story_evidence/1.0",
+  "claim_id": "C003_TRUE_CRIME_VN",
+  "claim_text": "Hồ sơ lưu trữ tư liệu điều tra hình sự tại Việt Nam, đối tượng Ngô Bá Khá (Khá Bảnh).",
+  "claim_type": "confirmed",
+  "date": "2019-04-02",
+  "place": "Bắc Ninh, Việt Nam",
+  "entities": [
+    {
+      "entity_id": "person_ngo_ba_kha",
+      "canonical_name": "Ngô Bá Khá",
+      "aliases": [
+        "Khá Bảnh"
+      ],
+      "country": "Vietnam",
+      "locale": "vi-VN"
+    },
+    {
+      "entity_id": "doc_casefile_vn",
+      "canonical_name": "Hồ sơ vụ án hình sự Việt Nam",
+      "country": "Vietnam",
+      "locale": "vi-VN",
+      "forbidden_placeholders": [
+        "John Doe",
+        "J. Doe",
+        "Jane Doe",
+        "Law Enforcement Case File",
+        "US Police Dept",
+        "FBI Case File"
+      ]
+    }
+  ],
+  "must_show": [
+    "person_ngo_ba_kha",
+    "doc_casefile_vn"
+  ],
+  "must_not_invent": [
+    "foreign_law_enforcement_badge",
+    "us_case_template"
+  ],
+  "confidence": 1.0
+}

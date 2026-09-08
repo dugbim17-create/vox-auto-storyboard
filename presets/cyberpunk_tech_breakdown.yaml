@@ -1,0 +1,18 @@
+# Style preset: cyberpunk_tech_breakdown
+# Injected into storyboard and motion planners for AI breakthroughs, Silicon Valley founders, cyber hacks, and futuristic science.
+name: cyberpunk_tech_breakdown
+visual_language: "futuristic HUD blueprint and neon technical breakdown"
+palette:
+  - "deep space obsidian"
+  - "matrix neon cyan"
+  - "terminal phosphor green"
+  - "warning laser magenta"
+texture:
+  - "digital grid blueprint"
+  - "scanline CRT overlay"
+  - "PCB circuit trace lines"
+typography: "futuristic technical monospaced bold"
+continuity_rules:
+  - "use glowing laser trace lines instead of red yarn"
+  - "use digital HUD crosshairs, angle coordinates, and telemetry"
+  - "use numeric odometer rolling counters on computing metrics"

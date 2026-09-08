@@ -1,0 +1,18 @@
+# Style preset: archival_vintage_history
+# Injected into storyboard and motion planners for historical biographies, ancient dynasties, wars, and national origins.
+name: archival_vintage_history
+visual_language: "vintage 19th-century archival museum dossier"
+palette:
+  - "aged parchment warm amber"
+  - "vintage sepia brown"
+  - "calligraphy ink black"
+  - "antique wax seal ruby"
+texture:
+  - "heavily weathered paper grain"
+  - "burned edges and torn fibers"
+  - "antique engraved borders"
+typography: "classic transitional serif bold"
+continuity_rules:
+  - "use torn paper cutouts with deckled white fiber edges"
+  - "use vintage tear-off calendar blocks for historical dates"
+  - "use antique brass compass and aged manuscript maps"
