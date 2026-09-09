@@ -793,6 +793,7 @@ class DynamicBackgroundCompositor:
 @dataclass
 class QuizRenderOptions:
     channel_profile: str = ""
+    visual_style: dict[str, Any] | None = None
     aspect_ratio: str = "16:9"  # "16:9" or "9:16"
     fps: int = 30
     tts_engine: str = "vieneu"  # "vieneu", "piper", or "edge"
@@ -828,6 +829,17 @@ class QuizVideoEngineV2:
 
     def __init__(self, options: QuizRenderOptions | None = None):
         self.opt = options or QuizRenderOptions()
+        if self.opt.visual_style is not None:
+            from app.services.quiz_style_packs import resolve_style_snapshot
+            style = self.opt.visual_style
+            self.opt.visual_style = resolve_style_snapshot(
+                str(style.get("id")),
+                locale=str(style.get("locale") or self.opt.language or "en-US"),
+                motion=str(style.get("motion") or "medium"),
+                mascot=style.get("mascot", False),
+                snapshot_override=style.get("snapshot"),
+                version=style.get("version"),
+            )
         if self.opt.channel_profile:
             from app.services.quiz_channel_profiles import get_profile
             profile = get_profile(self.opt.channel_profile)

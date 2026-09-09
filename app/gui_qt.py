@@ -225,6 +225,9 @@ class VoxQtApp:
         self.window.save_quiz_draft_button.clicked.connect(self._save_quiz_draft)
         self.window.quiz_generate_assets_button.clicked.connect(self._generate_quiz_assets)
         self.window.approve_quiz_button.clicked.connect(self._approve_quiz)
+        self.window.quiz_preview_button.clicked.connect(self._preview_quiz_style)
+        self.window.quiz_save_style_button.clicked.connect(self._save_quiz_style)
+        self.window.quiz_cancel_style_button.clicked.connect(self._cancel_quiz_style)
         self.window.quiz_question_table.currentCellChanged.connect(
             self._select_quiz_question
         )
@@ -1529,6 +1532,138 @@ class VoxQtApp:
         if current_row < len(questions):
             self.window.set_quiz_preview(questions[current_row])
 
+    def _style_preview_document(self) -> dict[str, Any]:
+        from copy import deepcopy
+
+        if not self.quiz_document:
+            raise RuntimeError("Hãy tải quiz trước khi preview style")
+        document = deepcopy(self.quiz_document)
+        questions = list(document.get("questions") or [])
+        if not questions:
+            raise RuntimeError("Quiz chưa có câu hỏi để preview")
+        style_id = str(self.window.quiz_style_combo.currentData() or "")
+        motion = str(self.window.quiz_motion_combo.currentData() or "medium")
+        if style_id:
+            from app.services.quiz_style_packs import resolve_style_snapshot
+
+            existing = document.get("visual_style") if isinstance(document.get("visual_style"), dict) else {}
+            document["visual_style"] = resolve_style_snapshot(
+                style_id,
+                locale=str(document.get("language") or "en-US"),
+                motion=motion,
+                mascot=False,
+                snapshot_override=(existing.get("snapshot") if existing.get("id") == style_id else None),
+            )
+        else:
+            document.pop("visual_style", None)
+        document["questions"] = questions
+        return document
+
+    def _sync_style_controls_from_document(self, document: dict[str, Any]) -> None:
+        style = document.get("visual_style") if isinstance(document.get("visual_style"), dict) else {}
+        self.window.quiz_style_combo.blockSignals(True)
+        self.window.quiz_motion_combo.blockSignals(True)
+        self.window.quiz_style_combo.setCurrentIndex(max(0, self.window.quiz_style_combo.findData(str(style.get("id") or ""))))
+        self.window.quiz_motion_combo.setCurrentIndex(max(0, self.window.quiz_motion_combo.findData(str(style.get("motion") or "medium"))))
+        self.window.quiz_style_combo.blockSignals(False)
+        self.window.quiz_motion_combo.blockSignals(False)
+
+    @Slot()
+    def _preview_quiz_style(self) -> None:
+        try:
+            document = self._style_preview_document()
+            aspect = str(self.window.quiz_preview_aspect_combo.currentData() or "16:9")
+            state = str(self.window.quiz_preview_state_combo.currentData() or "question")
+            result = self._render_quiz_style_preview_sync(
+                document=document,
+                aspect=aspect,
+                state=state,
+            )
+            self.window.set_quiz_style_preview(result)
+        except Exception as exc:  # noqa: BLE001
+            self.window.set_quiz_style_preview_error(str(exc))
+
+    def _render_quiz_style_preview_sync(
+        self,
+        *,
+        document: dict[str, Any],
+        aspect: str,
+        state: str,
+    ) -> dict[str, Any]:
+        from PIL import Image, ImageDraw
+
+        from app.services.quiz_engine_v2 import QuizRenderOptions, QuizVideoEngineV2
+
+        questions = list(document.get("questions") or [])
+        style = document.get("visual_style")
+        options = QuizRenderOptions(
+            aspect_ratio=aspect,
+            language=str(document.get("language") or "auto"),
+            channel_profile=str(document.get("channel_profile") or ""),
+            visual_style=style,
+        )
+        engine = QuizVideoEngineV2(options)
+        width, height = (1080, 1920) if aspect == "9:16" else (1920, 1080)
+        canvas = Image.new("RGB", (width, height), "black")
+        event = {
+            "idx": 1,
+            "total_q": len(questions),
+            "q_start": 0,
+            "cd_start": 2,
+            "rev_start": 8,
+            "rev_dur": 4,
+            "data": questions[0],
+        }
+        time_value = 9 if state == "reveal" else 3
+        frame = engine._render_question_card(
+            canvas,
+            ImageDraw.Draw(canvas),
+            time_value,
+            event,
+        )
+        output = Path(self.window.quiz_output_dir.text().strip() or "output/quiz")
+        preview_dir = output / "style-preview"
+        preview_dir.mkdir(parents=True, exist_ok=True)
+        style_id = str((style or {}).get("id") or "baseline") if isinstance(style, dict) else "baseline"
+        motion = str((style or {}).get("motion") or "medium") if isinstance(style, dict) else "medium"
+        import time
+        path = preview_dir / f"preview-{style_id}-{motion}-{aspect.replace(':', '_')}-{state}-{time.time_ns()}.png"
+        frame.save(path, format="PNG")
+        with Image.open(path) as decoded:
+            decoded.load()
+            if decoded.format != "PNG" or decoded.size != (width, height):
+                raise RuntimeError("style preview readback mismatch")
+        return {
+            "path": str(path.resolve()),
+            "style_id": (style or {}).get("id", "baseline") if isinstance(style, dict) else "baseline",
+            "motion": (style or {}).get("motion", "medium") if isinstance(style, dict) else "medium",
+            "aspect": aspect,
+            "state": state,
+            "provider_calls": 0,
+            "tts_calls": 0,
+        }
+
+    @Slot()
+    def _save_quiz_style(self) -> None:
+        try:
+            document = self._style_preview_document()
+            if "visual_style" not in document:
+                document.pop("visual_style", None)
+            from app.services.quiz_v2_runtime import save_document, load_document
+
+            output = Path(self.window.quiz_output_dir.text().strip() or "output/quiz")
+            path = save_document(document, output)
+            self.quiz_document = load_document(path)
+            self._sync_style_controls_from_document(self.quiz_document)
+            self.window.set_quiz_document(self.quiz_document)
+            self.window.statusBar().showMessage(f"Đã lưu style snapshot · {path.resolve()}")
+        except Exception as exc:  # noqa: BLE001
+            self.window.set_quiz_style_preview_error(str(exc))
+
+    @Slot()
+    def _cancel_quiz_style(self) -> None:
+        self.window.restore_quiz_style_controls(self.quiz_document or {})
+
     @Slot()
     def _render_quiz(self) -> None:
         if self.quiz_document is None:
@@ -1578,11 +1713,13 @@ class VoxQtApp:
             archetype = document.get("archetype") or ("riddle_mystra" if any("cards" in q or "scene_image" in q for q in questions) else "classic")
             settings = document.get("settings") or {}
 
+            from copy import deepcopy
             opt = QuizRenderOptions(
                 aspect_ratio=aspect_ratio,
                 fps=30,
                 language=document.get("language") or "auto",
                 channel_profile=document.get("channel_profile", ""),
+                visual_style=deepcopy(document.get("visual_style")),
                 archetype=archetype,
                 output_path=temp_out_mp4,
                 bgm_path=Path("assets/bgm/bgm_cyber_trap.wav"),
@@ -1614,6 +1751,7 @@ class VoxQtApp:
             manifest_data = {
                 "schema_version": "quiz_v2_dynamic",
                 "channel_profile": document.get("channel_profile", ""),
+                "visual_style": document.get("visual_style"),
                 "editorial_qa": document.get("editorial_qa", {}),
                 "title": document.get("title", "Custom Quiz"),
                 "archetype": archetype,

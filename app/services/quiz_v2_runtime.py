@@ -23,9 +23,26 @@ def content_fingerprint(document: dict) -> str:
             path = Path(value)
             assets.append({"path": str(path.resolve()), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
     payload = {"questions": questions, "assets": assets, "language": document.get("language", "auto")}
+    if document.get("narration") is not None:
+        payload["narration"] = document.get("narration")
+    if document.get("speech_inputs") is not None:
+        payload["speech_inputs"] = document.get("speech_inputs")
     if document.get("channel_profile"):
         payload["channel_profile"] = document["channel_profile"]
         payload["channel_profile_version"] = document.get("channel_profile_version")
+    style = document.get("visual_style")
+    if style is not None:
+        if not isinstance(style, dict):
+            raise ValueError("visual_style must be an object")
+        from app.services.quiz_style_packs import resolve_style_snapshot
+        payload["visual_style"] = resolve_style_snapshot(
+            str(style.get("id") or ""),
+            locale=str(style.get("locale") or payload["language"] or "en-US"),
+            motion=str(style.get("motion") or "medium"),
+            mascot=style.get("mascot", False),
+            snapshot_override=style.get("snapshot"),
+            version=style.get("version"),
+        )
     return hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True, allow_nan=False).encode()).hexdigest()
 
 

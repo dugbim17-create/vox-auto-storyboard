@@ -732,10 +732,28 @@ class VoxStudioWindow(QMainWindow):
         review.layout.addLayout(preset_row)
         from app.services.quiz_channel_profiles import PROFILES
         self.quiz_channel_combo = QComboBox()
+        self.quiz_channel_combo.setObjectName("QuizChannelCombo")
         self.quiz_channel_combo.addItem("Baseline VI/EN · không đổi", "")
         for key, profile in PROFILES.items():
             self.quiz_channel_combo.addItem(profile["name"], key)
         review.layout.addWidget(self.quiz_channel_combo)
+
+        style_row = QHBoxLayout()
+        style_row.addWidget(QLabel("Visual style"))
+        self.quiz_style_combo = QComboBox()
+        self.quiz_style_combo.setObjectName("QuizStyleCombo")
+        self.quiz_style_combo.addItem("Baseline · legacy route", "")
+        self.quiz_style_combo.addItem("Sport Scoreboard", "sport-scoreboard")
+        self.quiz_style_combo.addItem("Editorial Culture", "editorial-culture")
+        self.quiz_style_combo.addItem("Clear Knowledge", "clear-knowledge")
+        self.quiz_motion_combo = QComboBox()
+        self.quiz_motion_combo.setObjectName("QuizMotionCombo")
+        for motion in ("low", "medium", "high"):
+            self.quiz_motion_combo.addItem(motion.capitalize(), motion)
+        style_row.addWidget(self.quiz_style_combo, 1)
+        style_row.addWidget(QLabel("Motion"))
+        style_row.addWidget(self.quiz_motion_combo)
+        review.layout.addLayout(style_row)
         analytics_button = QPushButton("Channel analytics · mở CSV")
         analytics_button.clicked.connect(self._open_channel_analytics)
         review.layout.addWidget(analytics_button)
@@ -824,6 +842,39 @@ class VoxStudioWindow(QMainWindow):
         self.quiz_preview.setReadOnly(True)
         self.quiz_preview.setPlaceholderText("Chọn một câu để review nội dung và nguồn...")
         operate.layout.addWidget(self.quiz_preview, 1)
+
+        preview_controls = QHBoxLayout()
+        self.quiz_preview_state_combo = QComboBox()
+        self.quiz_preview_state_combo.setObjectName("QuizPreviewStateCombo")
+        self.quiz_preview_state_combo.addItem("Question", "question")
+        self.quiz_preview_state_combo.addItem("Reveal", "reveal")
+        self.quiz_preview_aspect_combo = QComboBox()
+        self.quiz_preview_aspect_combo.setObjectName("QuizPreviewAspectCombo")
+        self.quiz_preview_aspect_combo.addItem("16:9", "16:9")
+        self.quiz_preview_aspect_combo.addItem("9:16", "9:16")
+        self.quiz_preview_button = QPushButton("Preview style")
+        self.quiz_preview_button.setObjectName("QuizPreviewButton")
+        self.quiz_preview_button.setProperty("kind", "secondary")
+        self.quiz_save_style_button = QPushButton("Save style snapshot")
+        self.quiz_save_style_button.setObjectName("QuizSaveStyleButton")
+        self.quiz_cancel_style_button = QPushButton("Cancel style")
+        self.quiz_cancel_style_button.setObjectName("QuizCancelStyleButton")
+        preview_controls.addWidget(self.quiz_preview_state_combo)
+        preview_controls.addWidget(self.quiz_preview_aspect_combo)
+        preview_controls.addWidget(self.quiz_preview_button)
+        preview_controls.addWidget(self.quiz_save_style_button)
+        preview_controls.addWidget(self.quiz_cancel_style_button)
+        operate.layout.addLayout(preview_controls)
+        self.quiz_preview_image = QLabel("Chưa có style preview")
+        self.quiz_preview_image.setObjectName("QuizPreviewImage")
+        self.quiz_preview_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.quiz_preview_image.setMinimumSize(280, 180)
+        self.quiz_preview_image.setProperty("preview_status", "empty")
+        operate.layout.addWidget(self.quiz_preview_image)
+        self.quiz_style_preview_status = QLabel("Preview chưa chạy")
+        self.quiz_style_preview_status.setObjectName("QuizStylePreviewStatus")
+        self.quiz_style_preview_status.setWordWrap(True)
+        operate.layout.addWidget(self.quiz_style_preview_status)
         self.quiz_approval_fingerprint = QLabel("Chưa duyệt")
         self.quiz_approval_fingerprint.setObjectName("QuizApprovalFingerprint")
         self.quiz_approval_fingerprint.setWordWrap(True)
@@ -1167,6 +1218,15 @@ class VoxStudioWindow(QMainWindow):
         questions = list(quiz.get("questions") or [])
         self.quiz_question_table.setRowCount(len(questions))
         is_v2 = bool(quiz.get("engine_v2"))
+        style = quiz.get("visual_style") if isinstance(quiz.get("visual_style"), dict) else {}
+        style_id = str(style.get("id") or "")
+        motion = str(style.get("motion") or "medium")
+        self.quiz_style_combo.blockSignals(True)
+        self.quiz_motion_combo.blockSignals(True)
+        self.quiz_style_combo.setCurrentIndex(max(0, self.quiz_style_combo.findData(style_id)))
+        self.quiz_motion_combo.setCurrentIndex(max(0, self.quiz_motion_combo.findData(motion)))
+        self.quiz_style_combo.blockSignals(False)
+        self.quiz_motion_combo.blockSignals(False)
         for row, question in enumerate(questions):
             choices = {str(item.get("id")): str(item.get("text") or "") for item in question.get("choices") or []}
             cards = {str(item.get("id")): str(item.get("label") or "") for item in question.get("cards") or []}
@@ -1384,6 +1444,43 @@ class VoxStudioWindow(QMainWindow):
                 f"{choices}\n\nĐáp án: {question.get('correct_choice_id')} — "
                 f"{question.get('answer_text')}"
             )
+
+    def set_quiz_style_preview(self, payload: dict) -> None:
+        path = str(payload.get("path") or "")
+        pixmap = QPixmap(path)
+        if pixmap.isNull():
+            self.set_quiz_style_preview_error(f"Không đọc được preview: {path}")
+            return
+        self.quiz_preview_image.setText("")
+        self.quiz_preview_image.setPixmap(
+            pixmap.scaled(
+                self.quiz_preview_image.size(),
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+        )
+        self.quiz_preview_image.setProperty("preview_status", "ready")
+        self.quiz_style_preview_status.setText(
+            f"Preview ready · style={payload.get('style_id', 'baseline')} · "
+            f"motion={payload.get('motion', 'medium')} · {payload.get('aspect')} · {payload.get('state')} · "
+            f"provider={payload.get('provider_calls', 0)} · TTS={payload.get('tts_calls', 0)}"
+        )
+
+    def set_quiz_style_preview_error(self, message: str) -> None:
+        self.quiz_preview_image.setPixmap(QPixmap())
+        self.quiz_preview_image.setText("Preview lỗi · chưa có ảnh hiện hành")
+        self.quiz_preview_image.setProperty("preview_status", "error")
+        self.quiz_style_preview_status.setText(f"Preview lỗi: {message}")
+
+    def restore_quiz_style_controls(self, quiz: dict) -> None:
+        style = quiz.get("visual_style") if isinstance(quiz.get("visual_style"), dict) else {}
+        self.quiz_style_combo.blockSignals(True)
+        self.quiz_motion_combo.blockSignals(True)
+        self.quiz_style_combo.setCurrentIndex(max(0, self.quiz_style_combo.findData(str(style.get("id") or ""))))
+        self.quiz_motion_combo.setCurrentIndex(max(0, self.quiz_motion_combo.findData(str(style.get("motion") or "medium"))))
+        self.quiz_style_combo.blockSignals(False)
+        self.quiz_motion_combo.blockSignals(False)
+        self.quiz_style_preview_status.setText("Đã hủy thay đổi style chưa lưu")
 
     def set_quiz_render_result(self, payload: dict) -> None:
         self.quiz_progress.setValue(100)
