@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon, QImage, QPixmap
 from PySide6.QtWidgets import (
+    QAbstractItemView,
     QComboBox,
     QDoubleSpinBox,
     QFrame,
@@ -287,12 +289,136 @@ class VoxStudioWindow(QMainWindow):
     def _build_projects_page(self) -> QWidget:
         page = QWidget()
         page.setObjectName("ProjectsPage")
-        layout = QVBoxLayout(page)
-        layout.setContentsMargins(0, 0, 0, 0)
-        card = Card("Dự án", raised=True)
-        card.layout.addWidget(QLabel("Chọn dự án ở thanh trên hoặc tạo dự án mới từ sidebar."))
-        layout.addWidget(card)
-        layout.addStretch(1)
+        root_layout = QVBoxLayout(page)
+        root_layout.setContentsMargins(0, 0, 0, 0)
+        root_layout.setSpacing(10)
+
+        header_card = Card("Quản lý Dự án & Sản xuất", raised=True)
+        header_card.setObjectName("ProjectsHeaderCard")
+        toolbar_row = QHBoxLayout()
+        toolbar_row.setSpacing(8)
+
+        self.project_search_input = QLineEdit()
+        self.project_search_input.setObjectName("ProjectSearchInput")
+        self.project_search_input.setPlaceholderText("🔍  Tìm kiếm dự án theo tên chủ đề hoặc mã ID...")
+        toolbar_row.addWidget(self.project_search_input, 2)
+
+        self.project_status_filter = QComboBox()
+        self.project_status_filter.setObjectName("ProjectStatusFilter")
+        self.project_status_filter.addItem("Tất cả trạng thái", "")
+        self.project_status_filter.addItem("Đã xong video", "COMPLETED")
+        self.project_status_filter.addItem("Đã có ảnh", "IMAGES_READY")
+        self.project_status_filter.addItem("Storyboard", "STORYBOARD_VALIDATED")
+        self.project_status_filter.addItem("Bản nháp", "INGESTED")
+        toolbar_row.addWidget(self.project_status_filter)
+
+        self.refresh_projects_button = QPushButton("⟳  Làm mới")
+        self.refresh_projects_button.setObjectName("RefreshProjectsButton")
+        toolbar_row.addWidget(self.refresh_projects_button)
+
+        self.create_project_action_button = QPushButton("＋  Tạo dự án mới")
+        self.create_project_action_button.setObjectName("CreateProjectActionButton")
+        self.create_project_action_button.setProperty("kind", "primary")
+        toolbar_row.addWidget(self.create_project_action_button)
+
+        header_card.layout.addLayout(toolbar_row)
+
+        self.project_count_label = QLabel("Đang tải danh sách dự án...")
+        self.project_count_label.setObjectName("ProjectCountLabel")
+        self.project_count_label.setStyleSheet("color: #A0AEC0; font-size: 12px; margin-top: 4px;")
+        header_card.layout.addWidget(self.project_count_label)
+        root_layout.addWidget(header_card)
+
+        workspace = QHBoxLayout()
+        workspace.setSpacing(10)
+
+        table_card = Card("Danh sách dự án trên máy", raised=True)
+        table_card.setObjectName("ProjectsTableCard")
+        self.projects_table = QTableWidget()
+        self.projects_table.setObjectName("ProjectsTable")
+        self.projects_table.setColumnCount(5)
+        self.projects_table.setHorizontalHeaderLabels([
+            "Mã ID", "Tên chủ đề / Dự án", "Trạng thái", "Phân cảnh", "Thời gian tạo"
+        ])
+        self.projects_table.horizontalHeader().setStretchLastSection(True)
+        self.projects_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self.projects_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.projects_table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.projects_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.projects_table.verticalHeader().setVisible(False)
+        self.projects_table.setShowGrid(False)
+        table_card.layout.addWidget(self.projects_table)
+        workspace.addWidget(table_card, 3)
+
+        inspector_card = Card("Chi tiết dự án", raised=True)
+        inspector_card.setObjectName("ProjectInspectorCard")
+        inspector_card.setMinimumWidth(320)
+        inspector_card.setMaximumWidth(400)
+
+        self.proj_inspector_title = QLabel("Chưa chọn dự án")
+        self.proj_inspector_title.setObjectName("ProjInspectorTitle")
+        self.proj_inspector_title.setStyleSheet("font-size: 15px; font-weight: bold; color: #EDF2F7;")
+        self.proj_inspector_title.setWordWrap(True)
+        inspector_card.layout.addWidget(self.proj_inspector_title)
+
+        self.proj_inspector_id = QLabel("Mã ID: —")
+        self.proj_inspector_id.setObjectName("ProjInspectorId")
+        self.proj_inspector_id.setStyleSheet("color: #718096; font-size: 11px;")
+        inspector_card.layout.addWidget(self.proj_inspector_id)
+
+        self.proj_inspector_status_badge = QLabel("Trạng thái: —")
+        self.proj_inspector_status_badge.setObjectName("ProjInspectorStatusBadge")
+        inspector_card.layout.addWidget(self.proj_inspector_status_badge)
+
+        inspector_card.layout.addWidget(QLabel("Tóm tắt kịch bản:"))
+        self.proj_inspector_script = QTextEdit()
+        self.proj_inspector_script.setObjectName("ProjInspectorScript")
+        self.proj_inspector_script.setReadOnly(True)
+        self.proj_inspector_script.setPlaceholderText("Nội dung kịch bản sẽ hiển thị tại đây...")
+        inspector_card.layout.addWidget(self.proj_inspector_script, 1)
+
+        info_box = QVBoxLayout()
+        info_box.setSpacing(4)
+        self.proj_inspector_scenes = QLabel("Số phân cảnh: —")
+        self.proj_inspector_scenes.setObjectName("ProjInspectorScenes")
+        info_box.addWidget(self.proj_inspector_scenes)
+
+        self.proj_inspector_video = QLabel("Video hoàn thành: Chưa có")
+        self.proj_inspector_video.setObjectName("ProjInspectorVideo")
+        info_box.addWidget(self.proj_inspector_video)
+
+        self.proj_inspector_dir = QLabel("Đường dẫn: —")
+        self.proj_inspector_dir.setObjectName("ProjInspectorDir")
+        self.proj_inspector_dir.setWordWrap(True)
+        self.proj_inspector_dir.setStyleSheet("color: #718096; font-size: 10px;")
+        info_box.addWidget(self.proj_inspector_dir)
+        inspector_card.layout.addLayout(info_box)
+
+        actions_col = QVBoxLayout()
+        actions_col.setSpacing(6)
+
+        self.proj_open_workspace_button = QPushButton("▶  Mở vào Workspace")
+        self.proj_open_workspace_button.setObjectName("ProjOpenWorkspaceButton")
+        self.proj_open_workspace_button.setProperty("kind", "primary")
+        self.proj_open_workspace_button.setEnabled(False)
+        actions_col.addWidget(self.proj_open_workspace_button)
+
+        btn_row = QHBoxLayout()
+        self.proj_open_folder_button = QPushButton("📂  Mở thư mục")
+        self.proj_open_folder_button.setObjectName("ProjOpenFolderButton")
+        self.proj_open_folder_button.setEnabled(False)
+        btn_row.addWidget(self.proj_open_folder_button)
+
+        self.proj_play_video_button = QPushButton("🎬  Xem Video")
+        self.proj_play_video_button.setObjectName("ProjPlayVideoButton")
+        self.proj_play_video_button.setEnabled(False)
+        btn_row.addWidget(self.proj_play_video_button)
+        actions_col.addLayout(btn_row)
+
+        inspector_card.layout.addLayout(actions_col)
+        workspace.addWidget(inspector_card, 1)
+
+        root_layout.addLayout(workspace, 1)
         return page
 
     def _build_storyboard_page(self) -> QWidget:
@@ -1245,6 +1371,115 @@ class VoxStudioWindow(QMainWindow):
                 selected_index = index
         self.project_selector.setCurrentIndex(selected_index)
         self.project_selector.blockSignals(False)
+
+    def set_projects_hub_data(self, projects_data: list[dict[str, Any]]) -> None:
+        """Populate the full projects table and store full dataset for filtering."""
+        self._all_hub_projects = list(projects_data)
+        if hasattr(self, "project_count_label"):
+            self.project_count_label.setText(f"Tổng cộng: {len(projects_data)} dự án trên máy")
+        self._render_projects_table(self._all_hub_projects)
+
+    def _render_projects_table(self, projects: list[dict[str, Any]]) -> None:
+        if not hasattr(self, "projects_table"):
+            return
+        self.projects_table.blockSignals(True)
+        self.projects_table.setRowCount(len(projects))
+        for row, p in enumerate(projects):
+            item_id = QTableWidgetItem(str(p.get("project_id") or ""))
+            item_id.setData(Qt.ItemDataRole.UserRole, p)
+            item_title = QTableWidgetItem(str(p.get("title") or ""))
+            
+            status_text = str(p.get("status") or "Chưa rõ")
+            item_status = QTableWidgetItem(status_text)
+            if "COMPLETED" in status_text.upper() or p.get("has_video"):
+                item_status.setForeground(Qt.GlobalColor.green)
+            elif "IMAGE" in status_text.upper() or "STORYBOARD" in status_text.upper():
+                item_status.setForeground(Qt.GlobalColor.cyan)
+            else:
+                item_status.setForeground(Qt.GlobalColor.lightGray)
+
+            item_scenes = QTableWidgetItem(str(p.get("scenes_count", 0)))
+            item_date = QTableWidgetItem(str(p.get("created_at", "") or ""))
+
+            self.projects_table.setItem(row, 0, item_id)
+            self.projects_table.setItem(row, 1, item_title)
+            self.projects_table.setItem(row, 2, item_status)
+            self.projects_table.setItem(row, 3, item_scenes)
+            self.projects_table.setItem(row, 4, item_date)
+        self.projects_table.blockSignals(False)
+
+        if projects:
+            self.projects_table.selectRow(0)
+            self.set_inspector_project(projects[0])
+        else:
+            self.set_inspector_project(None)
+
+    def filter_projects_hub(self, search_text: str = "", status_filter: str = "") -> None:
+        """Filter projects table rows by search keyword and status code."""
+        if not hasattr(self, "_all_hub_projects"):
+            return
+        query = search_text.strip().casefold()
+        status_q = status_filter.strip().casefold()
+        filtered = []
+        for p in self._all_hub_projects:
+            title = str(p.get("title") or "").casefold()
+            pid = str(p.get("project_id") or "").casefold()
+            p_status = str(p.get("status") or "").casefold()
+            has_vid = p.get("has_video", False)
+
+            match_text = (not query) or (query in title) or (query in pid)
+            if not match_text:
+                continue
+
+            if status_q:
+                if status_q == "completed" and not (has_vid or "completed" in p_status):
+                    continue
+                elif status_q == "images_ready" and "image" not in p_status:
+                    continue
+                elif status_q == "storyboard_validated" and "storyboard" not in p_status:
+                    continue
+                elif status_q == "ingested" and "ingested" not in p_status:
+                    continue
+            filtered.append(p)
+        self._render_projects_table(filtered)
+
+    def set_inspector_project(self, project: dict[str, Any] | None) -> None:
+        """Update right-hand inspector panel with selected project properties."""
+        self._selected_hub_project = project
+        if not hasattr(self, "proj_inspector_title"):
+            return
+        if not project:
+            self.proj_inspector_title.setText("Chưa chọn dự án")
+            self.proj_inspector_id.setText("Mã ID: —")
+            self.proj_inspector_status_badge.setText("Trạng thái: —")
+            self.proj_inspector_script.clear()
+            self.proj_inspector_scenes.setText("Số phân cảnh: —")
+            self.proj_inspector_video.setText("Video thành phẩm: Chưa có")
+            self.proj_inspector_dir.setText("Đường dẫn: —")
+            self.proj_open_workspace_button.setEnabled(False)
+            self.proj_open_folder_button.setEnabled(False)
+            self.proj_play_video_button.setEnabled(False)
+            return
+
+        title = str(project.get("title") or project.get("project_id") or "Dự án")
+        pid = str(project.get("project_id") or "")
+        status = str(project.get("status") or "Chưa rõ")
+        scenes_count = project.get("scenes_count", 0)
+        has_video = project.get("has_video", False)
+        dir_path = str(project.get("dir_path") or "")
+        script_text = str(project.get("script_text") or "")
+
+        self.proj_inspector_title.setText(title)
+        self.proj_inspector_id.setText(f"Mã ID: {pid}")
+        self.proj_inspector_status_badge.setText(f"Trạng thái: {status}")
+        self.proj_inspector_script.setPlainText(script_text[:1000] if script_text else "(Chưa có kịch bản văn bản)")
+        self.proj_inspector_scenes.setText(f"Số phân cảnh: {scenes_count}")
+        self.proj_inspector_video.setText(f"Video thành phẩm: {'✓ Đã có MP4' if has_video else 'Chưa có MP4'}")
+        self.proj_inspector_dir.setText(f"Đường dẫn: {dir_path}")
+
+        self.proj_open_workspace_button.setEnabled(True)
+        self.proj_open_folder_button.setEnabled(bool(dir_path and Path(dir_path).exists()))
+        self.proj_play_video_button.setEnabled(bool(has_video and project.get("video_path")))
 
     def set_project_content(self, project: dict, scenes: list[dict]) -> None:
         title = str(project.get("title") or project.get("project_id") or "Project")

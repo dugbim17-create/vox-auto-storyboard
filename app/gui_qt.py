@@ -262,6 +262,25 @@ class VoxQtApp:
         self.window.settings_button.clicked.connect(self._open_settings)
         self.window.guide_button.clicked.connect(self._show_guide)
         self.window.clear_logs_button.clicked.connect(self._clear_logs)
+
+        # Projects Hub Signals
+        if hasattr(self.window, "refresh_projects_button"):
+            self.window.refresh_projects_button.clicked.connect(self._refresh_projects_hub)
+        if hasattr(self.window, "project_search_input"):
+            self.window.project_search_input.textChanged.connect(self._on_projects_hub_filter_changed)
+        if hasattr(self.window, "project_status_filter"):
+            self.window.project_status_filter.currentIndexChanged.connect(self._on_projects_hub_filter_changed)
+        if hasattr(self.window, "create_project_action_button"):
+            self.window.create_project_action_button.clicked.connect(self._on_create_project_from_hub)
+        if hasattr(self.window, "projects_table"):
+            self.window.projects_table.currentCellChanged.connect(self._on_projects_hub_cell_changed)
+            self.window.projects_table.itemDoubleClicked.connect(self._on_projects_hub_open_workspace)
+        if hasattr(self.window, "proj_open_workspace_button"):
+            self.window.proj_open_workspace_button.clicked.connect(self._on_projects_hub_open_workspace)
+        if hasattr(self.window, "proj_open_folder_button"):
+            self.window.proj_open_folder_button.clicked.connect(self._on_projects_hub_open_folder)
+        if hasattr(self.window, "proj_play_video_button"):
+            self.window.proj_play_video_button.clicked.connect(self._on_projects_hub_play_video)
         self.window.open_log_folder_button.clicked.connect(self._open_log_folder)
         if hasattr(self.window, "load_preset_quick_button"):
             self.window.load_preset_quick_button.clicked.connect(self._on_load_preset_quick)
@@ -651,6 +670,129 @@ class VoxQtApp:
                 for project in ProjectRepo.list(session)
             ]
         self.window.set_projects(projects, self.project_id)
+        self._refresh_projects_hub()
+
+    @Slot()
+    def _refresh_projects_hub(self) -> None:
+        from pathlib import Path
+        from app.storage import database
+        from app.storage.repositories import ProjectRepo, SceneRepo
+
+        database.init_schema()
+        projects_data = []
+        root_dir = Path("projects")
+        seen_ids = set()
+
+        try:
+            with database.create_session() as session:
+                db_projects = ProjectRepo.list(session, limit=200)
+                for p in db_projects:
+                    seen_ids.add(p.project_id)
+                    scenes = SceneRepo.list(session, p.project_id)
+                    p_dir = root_dir / p.project_id
+
+                    video_path = None
+                    for cand in [p_dir / "final" / "final_vox_video.mp4", p_dir / "final" / "final.mp4", p_dir / "final.mp4"]:
+                        if cand.is_file():
+                            video_path = cand
+                            break
+                    if not video_path and p_dir.is_dir():
+                        mp4s = list(p_dir.glob("**/*.mp4"))
+                        if mp4s:
+                            video_path = mp4s[0]
+
+                    created_str = p.created_at.strftime("%Y-%m-%d %H:%M") if getattr(p, "created_at", None) else ""
+                    projects_data.append({
+                        "project_id": p.project_id,
+                        "title": p.title or p.project_id,
+                        "status": p.status or "INGESTED",
+                        "project_type": "Phóng sự Vox",
+                        "scenes_count": len(scenes),
+                        "dir_path": str(p_dir.resolve()) if p_dir.exists() else str(p_dir),
+                        "has_video": video_path is not None,
+                        "video_path": str(video_path.resolve()) if video_path else "",
+                        "script_text": p.script_text or "",
+                        "created_at": created_str,
+                    })
+        except Exception:
+            pass
+
+        # Also add projects on filesystem not recorded in SQLite DB
+        if root_dir.is_dir():
+            for p_dir in sorted(root_dir.iterdir(), key=lambda d: d.stat().st_mtime if d.is_dir() else 0, reverse=True):
+                if p_dir.is_dir() and p_dir.name not in seen_ids and not p_dir.name.startswith("."):
+                    mp4s = list(p_dir.glob("**/*.mp4"))
+                    video_path = mp4s[0] if mp4s else None
+                    title_derived = p_dir.name.replace("prj_", "").replace("_", " ").title()
+                    projects_data.append({
+                        "project_id": p_dir.name,
+                        "title": title_derived,
+                        "status": "COMPLETED" if video_path else "LOCAL_DIR",
+                        "project_type": "Phóng sự Vox",
+                        "scenes_count": len(list(p_dir.glob("scenes/*.json"))),
+                        "dir_path": str(p_dir.resolve()),
+                        "has_video": video_path is not None,
+                        "video_path": str(video_path.resolve()) if video_path else "",
+                        "script_text": "",
+                        "created_at": "",
+                    })
+
+        self.window.set_projects_hub_data(projects_data)
+
+    @Slot(int, int)
+    def _on_projects_hub_cell_changed(self, row: int, _col: int) -> None:
+        if row < 0 or not hasattr(self.window, "projects_table"):
+            return
+        item = self.window.projects_table.item(row, 0)
+        if item is not None:
+            p_data = item.data(Qt.ItemDataRole.UserRole)
+            self.window.set_inspector_project(p_data)
+
+    @Slot()
+    def _on_projects_hub_filter_changed(self) -> None:
+        if not hasattr(self.window, "project_search_input"):
+            return
+        search_text = self.window.project_search_input.text()
+        status_filter = str(self.window.project_status_filter.currentData() or "")
+        self.window.filter_projects_hub(search_text, status_filter)
+
+    @Slot()
+    def _on_create_project_from_hub(self) -> None:
+        self.window.show_page("script")
+        self._new_project()
+
+    @Slot()
+    def _on_projects_hub_open_workspace(self) -> None:
+        p_data = getattr(self.window, "_selected_hub_project", None)
+        if not p_data:
+            return
+        pid = p_data.get("project_id")
+        if pid:
+            self._load_project(str(pid))
+            self.window.show_page("script")
+            self.window.statusBar().showMessage(f"Đã mở dự án {pid} vào Workspace")
+
+    @Slot()
+    def _on_projects_hub_open_folder(self) -> None:
+        import os
+        from pathlib import Path
+        p_data = getattr(self.window, "_selected_hub_project", None)
+        if not p_data:
+            return
+        dir_path = p_data.get("dir_path")
+        if dir_path and Path(dir_path).exists():
+            os.startfile(dir_path)
+
+    @Slot()
+    def _on_projects_hub_play_video(self) -> None:
+        import os
+        from pathlib import Path
+        p_data = getattr(self.window, "_selected_hub_project", None)
+        if not p_data:
+            return
+        vid_path = p_data.get("video_path")
+        if vid_path and Path(vid_path).exists():
+            os.startfile(vid_path)
 
     @Slot(int)
     def _select_project(self, _index: int) -> None:
