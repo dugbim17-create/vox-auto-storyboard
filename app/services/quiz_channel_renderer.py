@@ -160,7 +160,10 @@ def render(engine, canvas, draw, font_factory, *, event=None, time=0, outro=Fals
         cx0,cy0,cx1,cy1 = choice_rect
         color=accent if rev and str(cid)==correct else (55,61,73)
         draw.rounded_rectangle(choice_rect,radius=panel_radius,fill=color)
-        text_box(draw,f'{cid}  {label}',(cx0+20,cy0+12,cx1-20,cy1-5),font_factory,38)
+        from PIL import ImageColor
+        rgb = ImageColor.getrgb(color) if isinstance(color, str) else color
+        ink = (18, 29, 43) if sum(rgb[:3]) > 450 else (255, 255, 255)
+        text_box(draw,f'{cid}  {label}',(cx0+20,cy0+12,cx1-20,cy1-5),font_factory,38,ink)
     if rev:
         answer=q.get('explanation_text') or q.get('answer_text') or next((label for cid,label in choices if str(cid)==correct),correct)
         footer=f"{local['answer']}: {answer}"

@@ -162,9 +162,12 @@ def resolve_layout(
         else:
             choices = tuple(Rect(choices_x, choices_y + i * 112, choices_w, 84) for i in range(count))
         if content.get("fact") or content.get("explanation_text"):
-            fact = Rect(safe_margin, 850, width - 2 * safe_margin, 100)
-            if fact.y + fact.height > height - safe_margin:
-                fact = Rect(safe_margin, 800, width - 2 * safe_margin, 100)
+            # Keep the explanation as a real content block.  Its producer
+            # must move below the final choice rather than deleting the fact
+            # when four choices reach the lower reveal area.
+            last_choice_bottom = choices[-1].bottom if choices else 850
+            fact_y = max(850, last_choice_bottom)
+            fact = Rect(safe_margin, fact_y, width - 2 * safe_margin, 100)
     else:
         question = Rect(safe_margin, 210, width - 2 * safe_margin, 240)
         visual = None

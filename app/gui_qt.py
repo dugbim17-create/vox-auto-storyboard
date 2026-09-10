@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import sys
+from copy import deepcopy
 import threading
 import time
 from collections.abc import Callable
@@ -228,8 +229,25 @@ class VoxQtApp:
         self.window.quiz_preview_button.clicked.connect(self._preview_quiz_style)
         self.window.quiz_save_style_button.clicked.connect(self._save_quiz_style)
         self.window.quiz_cancel_style_button.clicked.connect(self._cancel_quiz_style)
+        if hasattr(self.window, "quiz_create_content_button"):
+            self.window.quiz_create_content_button.clicked.connect(self._create_quiz_content)
+        if hasattr(self.window, "quiz_other_input_toggle"):
+            self.window.quiz_other_input_toggle.clicked.connect(
+                self.window._toggle_quiz_alternative_input
+            )
+        if hasattr(self.window, "quiz_style_thumbnail_list"):
+            self.window.quiz_style_thumbnail_list.currentRowChanged.connect(self._select_quiz_thumbnail)
+        if hasattr(self.window, "quiz_channel_combo"):
+            self.window.quiz_channel_combo.currentIndexChanged.connect(self.window._on_quiz_channel_changed)
+            self.window._on_quiz_channel_changed()
         self.window.quiz_question_table.currentCellChanged.connect(
             self._select_quiz_question
+        )
+        self.window.quiz_voice_combo.currentIndexChanged.connect(
+            lambda _index: self.window.mark_quiz_stage_dirty("Giọng/tốc độ thay đổi chưa lưu")
+        )
+        self.window.quiz_speed_spin.valueChanged.connect(
+            lambda _value: self.window.mark_quiz_stage_dirty("Giọng/tốc độ thay đổi chưa lưu")
         )
         self.window.render_quiz_button.clicked.connect(self._render_quiz)
         self.window.render_final_button.clicked.connect(self._render_final)
@@ -1227,6 +1245,44 @@ class VoxQtApp:
             return
         self.bridge.run("research_quiz", lambda: self._research_quiz_sync(topic, path))
 
+    @Slot()
+    def _create_quiz_content(self) -> None:
+        """Open the existing content dialog with the native episode contract."""
+        topic = self.window.quiz_topic_input.text().strip()
+        if not topic:
+            QMessageBox.warning(self.window, "Thiếu chủ đề", "Hãy nhập chủ đề quiz.")
+            return
+        from app.services.quiz_episode_structure import build_episode_structure
+        from app.ui_qt.quiz_json_dialog import QuizJsonDialog
+
+        count = int(self.window.quiz_round_count.value())
+        mode = str(self.window.quiz_structure_combo.currentData() or "single")
+        structure = build_episode_structure(mode, episode_count=count)
+        dialog = QuizJsonDialog(self.window)
+        dialog.channel_profile = str(self.window.quiz_channel_combo.currentData() or "")
+        dialog.ai_prompt_input.setText(topic)
+        dialog.ai_count_spin.setValue(count)
+        dialog.episode_context = {
+            "topic": topic,
+            "structure_mode": mode,
+            "round_structure": structure,
+            "question_total": count,
+            "question_index": 1,
+        }
+        self.window.statusBar().showMessage(
+            f"Đã mở luồng tạo nội dung thật · {count} câu · {mode} · chưa gọi provider"
+        )
+        if dialog.exec() and dialog.parsed_document:
+            document = deepcopy(dialog.parsed_document)
+            document["round_structure"] = structure
+            document = self._apply_round_structure_to_generated_questions(document)
+            self.quiz_document = document
+            self.window.set_quiz_document(document)
+            self.window.quiz_stage_stack.setCurrentIndex(1)
+            self.window.quiz_status.setText(
+                f"Đã nạp {len(document.get('questions') or [])} câu từ luồng tạo nội dung · bản nháp"
+            )
+
     def _research_quiz_sync(self, topic: str, candidate_path: Path) -> dict[str, Any]:
         import hashlib
         import json
@@ -1267,6 +1323,7 @@ class VoxQtApp:
             return
         self.quiz_document = saved
         self.window.set_quiz_document(saved)
+        self.window.quiz_stage_dirty.setVisible(False)
 
     def _save_quiz_draft_sync(self) -> dict[str, Any]:
         from app.schemas.quiz import validate_quiz_project
@@ -1278,6 +1335,8 @@ class VoxQtApp:
         if self.quiz_document.get("engine_v2"):
             from app.services.quiz_v2_runtime import save_document, load_document
             draft = self.window.read_quiz_review(self.quiz_document)
+            if self.quiz_document.get("round_structure") is not None:
+                draft["round_structure"] = deepcopy(self.quiz_document["round_structure"])
             path = save_document(draft, Path(self.window.quiz_output_dir.text().strip() or "output/quiz"))
             self.window.quiz_file_path.setText(str(path.resolve()))
             return load_document(path)
@@ -1532,6 +1591,18 @@ class VoxQtApp:
         if current_row < len(questions):
             self.window.set_quiz_preview(questions[current_row])
 
+    @Slot(int)
+    def _select_quiz_thumbnail(self, row: int) -> None:
+        if row < 0 or not hasattr(self.window, "quiz_style_thumbnail_list"):
+            return
+        item = self.window.quiz_style_thumbnail_list.item(row)
+        style_id = str(item.data(Qt.ItemDataRole.UserRole) or "") if item is not None else ""
+        target = self.window.quiz_style_combo.findData("" if style_id == "baseline" else style_id)
+        if target >= 0:
+            self.window.quiz_style_combo.setCurrentIndex(target)
+        if self.quiz_document and self.quiz_document.get("questions"):
+            self._preview_quiz_style()
+
     def _style_preview_document(self) -> dict[str, Any]:
         from copy import deepcopy
 
@@ -1558,6 +1629,19 @@ class VoxQtApp:
             document.pop("visual_style", None)
         document["questions"] = questions
         return document
+
+    def _apply_round_structure_to_generated_questions(
+        self, document: dict[str, Any]
+    ) -> dict[str, Any]:
+        structure = document.get("round_structure")
+        questions = document.get("questions")
+        if not isinstance(structure, dict) or not isinstance(questions, list):
+            return document
+        from app.services.quiz_episode_structure import apply_round_allocation
+
+        result = deepcopy(document)
+        result["questions"] = apply_round_allocation(questions, structure)
+        return result
 
     def _sync_style_controls_from_document(self, document: dict[str, Any]) -> None:
         style = document.get("visual_style") if isinstance(document.get("visual_style"), dict) else {}
@@ -1605,14 +1689,16 @@ class VoxQtApp:
         engine = QuizVideoEngineV2(options)
         width, height = (1080, 1920) if aspect == "9:16" else (1920, 1080)
         canvas = Image.new("RGB", (width, height), "black")
+        selected_row = int(self.window.quiz_question_table.currentRow())
+        selected_index = selected_row if 0 <= selected_row < len(questions) else 0
         event = {
-            "idx": 1,
+            "idx": selected_index + 1,
             "total_q": len(questions),
             "q_start": 0,
             "cd_start": 2,
             "rev_start": 8,
             "rev_dur": 4,
-            "data": questions[0],
+            "data": questions[selected_index],
         }
         time_value = 9 if state == "reveal" else 3
         frame = engine._render_question_card(
@@ -1714,6 +1800,21 @@ class VoxQtApp:
             settings = document.get("settings") or {}
 
             from copy import deepcopy
+            from app.services.quiz_voice_registry import resolve_voice_assets
+
+            locale = str(document.get("language") or "auto")
+            requested_voice = str(settings.get("piper_voice") or "")
+            configured_model_root = Path(settings.get("piper_model_dir") or "assets/models/piper")
+            if not configured_model_root.is_absolute():
+                configured_model_root = Path.cwd() / configured_model_root
+            if not configured_model_root.is_dir():
+                configured_model_root = Path(__file__).resolve().parents[1] / "assets" / "models" / "piper"
+            voice_assets = resolve_voice_assets(
+                configured_model_root,
+                locale=locale,
+                voice_id=requested_voice or None,
+                strict=True,
+            )
             opt = QuizRenderOptions(
                 aspect_ratio=aspect_ratio,
                 fps=30,
@@ -1724,10 +1825,12 @@ class VoxQtApp:
                 output_path=temp_out_mp4,
                 bgm_path=Path("assets/bgm/bgm_cyber_trap.wav"),
                 tts_engine="piper",
-                piper_voice=settings.get("piper_voice") or ("en_US-ryan-high" if document.get("language") == "en" else "manh_dung"),
+                piper_voice=str(voice_assets["voice_id"]),
                 piper_speed=float(settings.get("piper_speed", 1.05)),
-                piper_model_dir=Path("D:/ALL AI/TestProjects/Voice/assets/models/piper"),
-                piper_exe=Path("D:/ALL AI/Hermes-argent-runtime/hermes-agent/venv/Scripts/piper.exe"),
+                target_duration_minutes=(float(document["target_minutes"]) if document.get("target_minutes") is not None else None),
+                piper_model_dir=Path(voice_assets["model_path"]).parent,
+                piper_config_path=Path(voice_assets["config_path"]),
+                piper_exe=Path(shutil.which("piper") or shutil.which("piper.exe") or "piper.exe"),
             )
             engine = QuizVideoEngineV2(opt)
             try:
@@ -1760,7 +1863,8 @@ class VoxQtApp:
                 "sha256": actual_sha256,
                 "final_mp4": str(out_mp4.resolve()),
                 "duration_ms": duration_ms,
-                "settings": {"piper_voice": opt.piper_voice, "piper_speed": opt.piper_speed, "language": opt.language},
+                "settings": {"piper_voice": opt.piper_voice, "piper_speed": opt.piper_speed, "language": opt.language,
+                              "target_duration_minutes": opt.target_duration_minutes},
                 "elapsed_seconds": time.perf_counter() - started,
                 "tts_calls": getattr(engine, "tts_calls", 0),
                 "tts_cache_hits": getattr(engine, "tts_cache_hits", 0),

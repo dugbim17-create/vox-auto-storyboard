@@ -83,6 +83,8 @@ def build_stylesheet() -> str:
     QListWidget QAbstractScrollArea::viewport {{ background: #0D0E12; color: {t['text']}; }}
     QLineEdit:focus, QTextEdit:focus, QComboBox:focus,
     QDoubleSpinBox:focus, QSpinBox:focus {{ border: 1px solid {t['accent']}; }}
+    QComboBox[voice_status="blocked"] {{ border: 1px solid {t['danger']}; }}
+    QComboBox[voice_status="ready"] {{ border: 1px solid {t['success']}; }}
     QHeaderView::section {{
         background: #171820; color: {t['text_secondary']}; border: 0;
         border-bottom: 1px solid {t['border']}; padding: 8px;

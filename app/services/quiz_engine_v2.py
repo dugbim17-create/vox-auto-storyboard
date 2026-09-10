@@ -30,6 +30,7 @@ from typing import Any, Callable
 import numpy as np
 from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont, ImageOps
 from app.services.quiz_image_layout import image_slot, fitted_size
+from app.services.quiz_voice_registry import resolve_voice_assets
 
 from app.config import _discover_cliproxy_api_key
 from app.providers.base import ImageGenerationRequest
@@ -799,9 +800,10 @@ class QuizRenderOptions:
     tts_engine: str = "vieneu"  # "vieneu", "piper", or "edge"
     vieneu_voice: str = "Ngọc Huyền"  # "Ngọc Huyền", "Thanh Bình", "Trúc Ly", "Minh Đức", "Đoan Trang"
     vieneu_speed: float = 1.05
-    piper_voice: str = "minh_khang"  # "minh_khang", "ngoc_huyen_moi", "ngocngan3701", "manh_dung", "nguyet_nga"
-    piper_model_dir: Path = Path("D:/ALL AI/TestProjects/Voice/assets/models/piper")
-    piper_exe: Path = Path("D:/ALL AI/Hermes-argent-runtime/hermes-agent/venv/Scripts/piper.exe")
+    piper_voice: str = ""
+    piper_model_dir: Path = Path("assets/models/piper")
+    piper_exe: Path = Path("piper.exe")
+    piper_config_path: Path | None = None
     piper_speed: float = 1.05
     voice_name: str = "vi-VN-HoaiMyNeural"
     mascot_type: str = "loc"  # "loc", "my", or "rabbit"
@@ -815,6 +817,7 @@ class QuizRenderOptions:
     image_model: str = "gpt-image-2"
     language: str = "auto"  # "auto", "en", or "vi"
     bgm_path: Path | str | None = None  # Path to custom studio BGM track
+    target_duration_minutes: float | None = None  # target metadata; measured voice timing remains authoritative
 
 
 class QuizVideoEngineV2:
@@ -829,6 +832,37 @@ class QuizVideoEngineV2:
 
     def __init__(self, options: QuizRenderOptions | None = None):
         self.opt = options or QuizRenderOptions()
+        if self.opt.tts_engine == "piper" and self.opt.channel_profile:
+            from app.services.quiz_channel_profiles import get_profile
+
+            profile_locale = str(get_profile(self.opt.channel_profile)["locale"])
+            assets = resolve_voice_assets(
+                self.opt.piper_model_dir,
+                locale=profile_locale,
+                voice_id=self.opt.piper_voice or None,
+                strict=True,
+            )
+            self.opt.piper_voice = str(assets["voice_id"])
+            self.opt.piper_model_dir = Path(assets["model_path"]).parent
+            self.opt.piper_config_path = Path(assets["config_path"])
+        elif self.opt.tts_engine == "piper" and self.opt.piper_voice:
+            # Keep direct engine unit fixtures backward-compatible for custom
+            # test IDs. The real country/profile route above is strict and
+            # requires catalog-locale model/config pairs.
+            from app.services.quiz_voice_registry import voice_spec_for_id
+
+            if voice_spec_for_id(self.opt.piper_voice) is not None:
+                assets = resolve_voice_assets(
+                    self.opt.piper_model_dir,
+                    locale=self.opt.language,
+                    voice_id=self.opt.piper_voice,
+                    strict=False,
+                )
+                self.opt.piper_voice = str(assets["voice_id"])
+                self.opt.piper_model_dir = Path(assets["model_path"]).parent
+                self.opt.piper_config_path = Path(assets["config_path"])
+            else:
+                self.opt.piper_config_path = Path(self.opt.piper_model_dir) / f"{self.opt.piper_voice}.onnx.json"
         if self.opt.visual_style is not None:
             from app.services.quiz_style_packs import resolve_style_snapshot
             style = self.opt.visual_style
@@ -1031,9 +1065,11 @@ class QuizVideoEngineV2:
                 print(f"[Piper TTS] Synthesizing {len(tts_jobs)} speech clips using voice: {self.opt.piper_voice}...")
                 for text, path in tts_jobs:
                     clean_txt = " ".join(text.split())
+                    config_path = self.opt.piper_config_path or model_path.with_suffix(".onnx.json")
                     cmd = [
                         str(self.opt.piper_exe),
                         "--model", str(model_path),
+                        "--config", str(config_path),
                         "--output_file", str(path),
                         "--length-scale", str(length_scale)
                     ]
@@ -1160,6 +1196,38 @@ class QuizVideoEngineV2:
         except Exception as e:
             raise RuntimeError(f"Invalid duration '{dur_str}' from ffprobe for {file_path}") from e
 
+    def _fit_target_duration(self, events: list[dict[str, Any]], natural_seconds: float) -> float:
+        """Fit countdowns only; never truncate speech or change question count."""
+        target = self.opt.target_duration_minutes
+        if target is None:
+            return natural_seconds
+        if not math.isfinite(target) or target <= 0:
+            raise ValueError("Target duration must be finite and positive")
+        questions = [event for event in events if event["type"] == "question"]
+        if not questions:
+            raise ValueError("Target duration requires at least one question")
+        fixed = natural_seconds - sum(event["cd_dur"] for event in questions)
+        minimum, maximum = fixed + 2.0 * len(questions), fixed + 10.0 * len(questions)
+        requested = target * 60.0
+        if not minimum <= requested <= maximum:
+            raise ValueError(
+                f"Requested {requested:.1f}s is not feasible without changing speech/content; "
+                f"safe range: {minimum:.1f}–{maximum:.1f}s "
+                "(countdown 2–10s). Choose another duration or edit the script."
+            )
+        countdown = (requested - fixed) / len(questions)
+        cursor = 0.0
+        for event in events:
+            if event["type"] == "question":
+                event.update(q_start=cursor, cd_start=cursor + event["q_dur"],
+                             cd_dur=countdown, rev_start=cursor + event["q_dur"] + countdown,
+                             total_dur=event["q_dur"] + countdown + event["rev_dur"])
+                cursor += event["total_dur"]
+            else:
+                event["start"] = cursor
+                cursor += event["dur"]
+        return cursor
+
     def _pipe_frames_to_ffmpeg(self, units: list[dict[str, Any]], voice_files: dict[str, Path], output_file: Path) -> tuple[float, list[dict[str, Any]]]:
         # Pre-cache and pre-scale images in memory for 100x render speedup
         card_w_169, card_h_169 = 380, 380
@@ -1258,6 +1326,7 @@ class QuizVideoEngineV2:
         cur_t += outro_dur
         
         total_dur = cur_t
+        total_dur = self._fit_target_duration(events, total_dur)
         total_frames = int(total_dur * self.opt.fps)
         
         cmd = [

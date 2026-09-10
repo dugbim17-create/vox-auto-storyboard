@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap
+from pathlib import Path
+
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QIcon, QImage, QPixmap
 from PySide6.QtWidgets import (
     QComboBox,
     QDoubleSpinBox,
@@ -18,6 +20,7 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QProgressBar,
     QPushButton,
+    QSpinBox,
     QScrollArea,
     QSizePolicy,
     QStackedWidget,
@@ -32,6 +35,26 @@ from PySide6.QtWidgets import (
 from app.ui_qt.components import AnalysisRow, Card, NavButton, SceneRow, StatPill
 from app.ui_qt.theme import build_stylesheet
 from app.version import APP_VERSION
+
+
+class QuizFramePreview(QLabel):
+    """Fit the original frame again whenever layout size changes."""
+
+    def setPixmap(self, pixmap):
+        self._source_frame = QPixmap(pixmap)
+        self._fit_frame()
+
+    def _fit_frame(self):
+        source = getattr(self, "_source_frame", None)
+        if source is not None:
+            super().setPixmap(source.scaled(
+                self.contentsRect().size(), Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            ) if not source.isNull() else source)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._fit_frame()
 
 
 class VoxStudioWindow(QMainWindow):
@@ -702,17 +725,98 @@ class VoxStudioWindow(QMainWindow):
     def _build_quiz_page(self) -> QWidget:
         page = QWidget()
         page.setObjectName("QuizPage")
-        layout = QHBoxLayout(page)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(14)
+        self.quiz_workflow_stage = 0
+        self.quiz_current_document: dict = {}
+        root_layout = QVBoxLayout(page)
+        root_layout.setContentsMargins(0, 0, 0, 0)
+        root_layout.setSpacing(10)
 
-        review = Card("⚡ Quiz Studio · Ngân hàng câu hỏi & Mẫu", raised=True)
-        self.quiz_review_card = review
+        stage_bar = QHBoxLayout()
+        stage_bar.setSpacing(8)
+        self.quiz_stage_buttons: list[QPushButton] = []
+        for index, label in enumerate((
+            "1 · Kênh & tập",
+            "2 · Nội dung",
+            "3 · Diện mạo",
+            "4 · Giọng & xuất",
+        )):
+            button = QPushButton(label)
+            button.setObjectName(f"QuizStageButton{index + 1}")
+            button.setMinimumHeight(36)
+            button.clicked.connect(
+                lambda checked=False, value=index: self.quiz_stage_stack.setCurrentIndex(value)
+            )
+            self.quiz_stage_buttons.append(button)
+            stage_bar.addWidget(button)
+        root_layout.addLayout(stage_bar)
 
-        # Quick Preset Selector Row
+        stage_summary = QHBoxLayout()
+        self.quiz_stage_channel_summary = QLabel("Kênh: chưa chọn · Locale: auto · 0 câu")
+        self.quiz_stage_channel_summary.setObjectName("QuizStageChannelSummary")
+        self.quiz_stage_channel_summary.setWordWrap(True)
+        stage_summary.addWidget(self.quiz_stage_channel_summary, 1)
+        self.quiz_stage_dirty = QLabel("Bản nháp sạch")
+        self.quiz_stage_dirty.setObjectName("QuizStageDirty")
+        self.quiz_stage_dirty.setProperty("dirty", False)
+        self.quiz_stage_dirty.setProperty("workflow_status", "clean")
+        stage_summary.addWidget(self.quiz_stage_dirty)
+        root_layout.addLayout(stage_summary)
+
+        self.quiz_stage_stack = QStackedWidget()
+        self.quiz_stage_stack.setObjectName("QuizStageStack")
+        self.quiz_stage_stack.currentChanged.connect(self._on_quiz_stage_changed)
+        self.quiz_stage_panels: list[QWidget] = []
+
+        from app.services.quiz_channel_profiles import PROFILES
+
+        # Stage 1: channel/topic/structure plus reachable legacy input routes.
+        channel_stage = QWidget()
+        channel_stage.setObjectName("QuizStageChannel")
+        channel_card = Card("Kênh & tập", raised=True)
+        self.quiz_channel_combo = QComboBox()
+        self.quiz_channel_combo.setObjectName("QuizChannelCombo")
+        self.quiz_channel_combo.addItem("Baseline VI/EN · không đổi", "")
+        for key, profile in PROFILES.items():
+            self.quiz_channel_combo.addItem(profile["name"], key)
+        channel_card.layout.addWidget(QLabel("Kênh / locale"))
+        channel_card.layout.addWidget(self.quiz_channel_combo)
+        self.quiz_topic_input = QLineEdit("Địa lý Việt Nam")
+        self.quiz_topic_input.setObjectName("QuizTopicInput")
+        self.quiz_topic_input.setPlaceholderText("Nhập chủ đề quiz...")
+        channel_card.layout.addWidget(QLabel("Chủ đề tập"))
+        channel_card.layout.addWidget(self.quiz_topic_input)
+        self.quiz_structure_combo = QComboBox()
+        self.quiz_structure_combo.setObjectName("QuizStructureCombo")
+        self.quiz_structure_combo.addItem("Một dạng xuyên suốt", "single")
+        self.quiz_structure_combo.addItem("Hỗn hợp theo kênh", "mixed")
+        self.quiz_round_count = QSpinBox()
+        self.quiz_round_count.setObjectName("QuizRoundCount")
+        self.quiz_round_count.setRange(1, 30)
+        self.quiz_round_count.setValue(5)
+        structure_row = QHBoxLayout()
+        structure_row.addWidget(QLabel("Cấu trúc"))
+        structure_row.addWidget(self.quiz_structure_combo, 1)
+        structure_row.addWidget(QLabel("Số câu"))
+        structure_row.addWidget(self.quiz_round_count)
+        channel_card.layout.addLayout(structure_row)
+        self.quiz_create_content_button = QPushButton("Tạo nội dung từ chủ đề")
+        self.quiz_create_content_button.setObjectName("QuizCreateContentButton")
+        self.quiz_create_content_button.setProperty("kind", "primary")
+        channel_card.layout.addWidget(self.quiz_create_content_button)
+        self.research_quiz_button = QPushButton("Tạo pilot 5 câu")
+        self.research_quiz_button.setObjectName("ResearchQuizButton")
+        self.research_quiz_button.setProperty("kind", "secondary")
+        channel_card.layout.addWidget(self.research_quiz_button)
+
+        self.quiz_other_input_toggle = QPushButton("Cách nhập khác ▸")
+        self.quiz_other_input_toggle.setObjectName("QuizOtherInputToggle")
+        channel_card.layout.addWidget(self.quiz_other_input_toggle)
+        self.quiz_alternative_panel = QWidget()
+        self.quiz_alternative_panel.setObjectName("QuizAlternativeInputPanel")
+        self.quiz_alternative_panel.setVisible(False)
+        alternative_layout = QVBoxLayout(self.quiz_alternative_panel)
         preset_row = QHBoxLayout()
-        preset_lbl = QLabel("Mẫu hot:")
-        preset_lbl.setStyleSheet("color:#A0AEC0; font-weight:600; font-size:12px;")
+        preset_row.addWidget(QLabel("Mẫu hot"))
         self.quiz_preset_combo = QComboBox()
         self.quiz_preset_combo.setObjectName("QuizPresetCombo")
         self.quiz_preset_combo.addItems([
@@ -725,21 +829,95 @@ class VoxStudioWindow(QMainWindow):
         ])
         self.load_preset_quick_button = QPushButton("⚡ Nạp nhanh")
         self.load_preset_quick_button.setObjectName("LoadPresetQuickButton")
-        self.load_preset_quick_button.setProperty("kind", "secondary")
-        preset_row.addWidget(preset_lbl)
         preset_row.addWidget(self.quiz_preset_combo, 1)
         preset_row.addWidget(self.load_preset_quick_button)
-        review.layout.addLayout(preset_row)
-        from app.services.quiz_channel_profiles import PROFILES
-        self.quiz_channel_combo = QComboBox()
-        self.quiz_channel_combo.setObjectName("QuizChannelCombo")
-        self.quiz_channel_combo.addItem("Baseline VI/EN · không đổi", "")
-        for key, profile in PROFILES.items():
-            self.quiz_channel_combo.addItem(profile["name"], key)
-        review.layout.addWidget(self.quiz_channel_combo)
+        alternative_layout.addLayout(preset_row)
+        file_row = QHBoxLayout()
+        self.quiz_file_path = QLineEdit("presets/quiz_5_vi_candidates_verified.json")
+        self.quiz_file_path.setObjectName("QuizFilePath")
+        self.load_quiz_button = QPushButton("Tải candidate bank")
+        self.load_quiz_button.setObjectName("LoadQuizButton")
+        self.paste_json_button = QPushButton("✦ AI & Dán JSON Quiz")
+        self.paste_json_button.setObjectName("PasteJsonButton")
+        self.paste_json_button.setProperty("kind", "secondary")
+        file_row.addWidget(self.quiz_file_path, 1)
+        file_row.addWidget(self.load_quiz_button)
+        file_row.addWidget(self.paste_json_button)
+        alternative_layout.addLayout(file_row)
+        analytics_button = QPushButton("Channel analytics · mở CSV")
+        analytics_button.clicked.connect(self._open_channel_analytics)
+        alternative_layout.addWidget(analytics_button)
+        channel_card.layout.addWidget(self.quiz_alternative_panel)
+        channel_stage_layout = QVBoxLayout(channel_stage)
+        channel_stage_layout.addWidget(channel_card, 1)
 
+        # Stage 2: one canonical grouped editor and truthful save/review actions.
+        content_stage = QWidget()
+        content_stage.setObjectName("QuizStageContent")
+        content_layout = QVBoxLayout(content_stage)
+        self.quiz_review_card = Card("Quiz Studio · Nội dung theo vòng", raised=True)
+        self.quiz_round_group = QComboBox()
+        self.quiz_round_group.setObjectName("QuizRoundGroup")
+        self.quiz_review_card.layout.addWidget(self.quiz_round_group)
+        self.quiz_empty_state = QLabel("0 câu hỏi · Hãy bắt đầu bằng nút Tạo nội dung từ chủ đề.")
+        self.quiz_empty_state.setObjectName("QuizEmptyState")
+        self.quiz_empty_state.setWordWrap(True)
+        self.quiz_empty_state.setProperty("empty_state", True)
+        self.quiz_review_card.layout.addWidget(self.quiz_empty_state)
+        self.quiz_question_table = QTableWidget(0, 8)
+        self.quiz_question_table.setObjectName("QuizQuestionTable")
+        self.quiz_question_table.itemChanged.connect(lambda item: self.mark_quiz_stage_dirty())
+        self.quiz_question_table.setProperty("canonical_editor", True)
+        self.quiz_question_table.setHorizontalHeaderLabels(
+            ["#", "Câu hỏi", "A", "B", "C", "Đúng", "Nguồn", "Trạng thái"]
+        )
+        self.quiz_question_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        header = self.quiz_question_table.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
+        self.quiz_question_table.setColumnWidth(0, 42)
+        self.quiz_question_table.setColumnWidth(5, 56)
+        self.quiz_question_table.setColumnWidth(7, 84)
+        self.quiz_review_card.layout.addWidget(self.quiz_question_table, 1)
+        actions = QHBoxLayout()
+        self.save_quiz_draft_button = QPushButton("Lưu nháp")
+        self.save_quiz_draft_button.setObjectName("SaveQuizDraftButton")
+        self.approve_quiz_button = QPushButton("Duyệt 5 câu")
+        self.approve_quiz_button.setObjectName("ApproveQuizButton")
+        self.approve_quiz_button.setProperty("kind", "primary")
+        self.quiz_generate_assets_button = QPushButton("Sinh ảnh thiếu · tối đa 6")
+        actions.addWidget(self.save_quiz_draft_button)
+        actions.addWidget(self.quiz_generate_assets_button)
+        actions.addWidget(self.approve_quiz_button)
+        self.quiz_review_card.layout.addLayout(actions)
+        content_layout.addWidget(self.quiz_review_card, 1)
+
+        # Stage 3: local production-rendered style cards and exact selected-question preview.
+        appearance_stage = QWidget()
+        appearance_stage.setObjectName("QuizStageAppearance")
+        appearance_layout = QVBoxLayout(appearance_stage)
+        style_card = Card("Diện mạo chung · một style cho cả tập", raised=True)
+        self.quiz_style_thumbnail_list = QListWidget()
+        self.quiz_style_thumbnail_list.setViewMode(QListWidget.ViewMode.IconMode)
+        self.quiz_style_thumbnail_list.setResizeMode(QListWidget.ResizeMode.Adjust)
+        self.quiz_style_thumbnail_list.setIconSize(QSize(200, 112))
+        self.quiz_style_thumbnail_list.setGridSize(QSize(230, 150))
+        self.quiz_style_thumbnail_list.setMinimumHeight(175)
+        self.quiz_style_thumbnail_list.setObjectName("QuizStyleThumbnailList")
+        self.quiz_style_thumbnail_list.setProperty("thumbnail_source", "production-engine-local")
+        for style_id, label in (
+            ("baseline", "Baseline · legacy"),
+            ("sport-scoreboard", "Sport Scoreboard"),
+            ("editorial-culture", "Editorial Culture"),
+            ("clear-knowledge", "Clear Knowledge"),
+        ):
+            item = QListWidgetItem(label)
+            item.setData(Qt.ItemDataRole.UserRole, style_id)
+            item.setIcon(self._quiz_thumbnail_icon(style_id))
+            self.quiz_style_thumbnail_list.addItem(item)
+        style_card.layout.addWidget(self.quiz_style_thumbnail_list)
         style_row = QHBoxLayout()
-        style_row.addWidget(QLabel("Visual style"))
         self.quiz_style_combo = QComboBox()
         self.quiz_style_combo.setObjectName("QuizStyleCombo")
         self.quiz_style_combo.addItem("Baseline · legacy route", "")
@@ -750,99 +928,18 @@ class VoxStudioWindow(QMainWindow):
         self.quiz_motion_combo.setObjectName("QuizMotionCombo")
         for motion in ("low", "medium", "high"):
             self.quiz_motion_combo.addItem(motion.capitalize(), motion)
+        style_row.addWidget(QLabel("Style"))
         style_row.addWidget(self.quiz_style_combo, 1)
-        style_row.addWidget(QLabel("Motion"))
+        style_row.addWidget(QLabel("Mức chuyển động"))
         style_row.addWidget(self.quiz_motion_combo)
-        review.layout.addLayout(style_row)
-        analytics_button = QPushButton("Channel analytics · mở CSV")
-        analytics_button.clicked.connect(self._open_channel_analytics)
-        review.layout.addWidget(analytics_button)
-
-        research_row = QHBoxLayout()
-        self.quiz_topic_input = QLineEdit("Địa lý Việt Nam")
-        self.quiz_topic_input.setObjectName("QuizTopicInput")
-        self.quiz_topic_input.setPlaceholderText("Nhập chủ đề quiz...")
-        self.research_quiz_button = QPushButton("Tạo pilot 5 câu")
-        self.research_quiz_button.setObjectName("ResearchQuizButton")
-        self.research_quiz_button.setProperty("kind", "primary")
-        research_row.addWidget(self.quiz_topic_input, 1)
-        research_row.addWidget(self.research_quiz_button)
-        review.layout.addLayout(research_row)
-
-        file_row = QHBoxLayout()
-        self.quiz_file_path = QLineEdit("presets/quiz_5_vi_candidates_verified.json")
-        self.quiz_file_path.setObjectName("QuizFilePath")
-        self.load_quiz_button = QPushButton("Tải candidate bank")
-        self.load_quiz_button.setObjectName("LoadQuizButton")
-        self.paste_json_button = QPushButton("✦ AI & Dán JSON Quiz")
-        self.paste_json_button.setObjectName("PasteJsonButton")
-        self.paste_json_button.setProperty("kind", "primary")
-        file_row.addWidget(self.quiz_file_path, 1)
-        file_row.addWidget(self.load_quiz_button)
-        file_row.addWidget(self.paste_json_button)
-        review.layout.addLayout(file_row)
-
-        self.quiz_question_table = QTableWidget(0, 8)
-        self.quiz_question_table.setObjectName("QuizQuestionTable")
-        self.quiz_question_table.setHorizontalHeaderLabels(
-            ["#", "Câu hỏi", "A", "B", "C", "Đúng", "Nguồn", "Trạng thái"]
-        )
-        self.quiz_question_table.setSelectionBehavior(
-            QTableWidget.SelectionBehavior.SelectRows
-        )
-        header = self.quiz_question_table.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
-        self.quiz_question_table.setColumnWidth(0, 42)
-        self.quiz_question_table.setColumnWidth(5, 56)
-        self.quiz_question_table.setColumnWidth(7, 84)
-        review.layout.addWidget(self.quiz_question_table, 1)
-        actions = QHBoxLayout()
-        self.save_quiz_draft_button = QPushButton("Lưu nháp")
-        self.save_quiz_draft_button.setObjectName("SaveQuizDraftButton")
-        self.approve_quiz_button = QPushButton("Duyệt 5 câu")
-        self.approve_quiz_button.setObjectName("ApproveQuizButton")
-        self.approve_quiz_button.setProperty("kind", "primary")
-        actions.addWidget(self.save_quiz_draft_button)
-        self.quiz_generate_assets_button = QPushButton("Sinh ảnh thiếu · tối đa 6")
-        actions.addWidget(self.quiz_generate_assets_button)
-        actions.addWidget(self.approve_quiz_button)
-        review.layout.addLayout(actions)
-        layout.addWidget(review, 3)
-
-        operate = Card("🎬 Xuất xưởng & Trình chiếu", raised=True)
-        operate.setMinimumWidth(380)
-
-        fmt_row = QHBoxLayout()
-        fmt_lbl = QLabel("Tỉ lệ:")
-        fmt_lbl.setStyleSheet("color:#A0AEC0; font-weight:600; font-size:12px;")
-        self.quiz_aspect_combo = QComboBox()
-        self.quiz_aspect_combo.setObjectName("QuizAspectCombo")
-        self.quiz_aspect_combo.addItems(["16:9 Ngang (YouTube Widescreen)", "9:16 Dọc (TikTok / Shorts)"])
-        fmt_row.addWidget(fmt_lbl)
-        fmt_row.addWidget(self.quiz_aspect_combo, 1)
-        operate.layout.addLayout(fmt_row)
-
-        voice_row = QHBoxLayout()
-        self.quiz_voice_combo = QComboBox()
-        self.quiz_voice_combo.setEditable(True)
-        self.quiz_voice_combo.addItems(["manh_dung", "minh_khang", "ngoc_huyen_moi", "ngocngan3701", "nguyet_nga", "en_US-ryan-high"])
-        self.quiz_speed_spin = QDoubleSpinBox()
-        self.quiz_speed_spin.setRange(0.25, 3.0)
-        self.quiz_speed_spin.setSingleStep(0.05)
-        self.quiz_speed_spin.setValue(1.05)
-        voice_row.addWidget(QLabel("Piper · Giọng / tốc độ"))
-        voice_row.addWidget(self.quiz_voice_combo)
-        voice_row.addWidget(self.quiz_speed_spin)
-        operate.layout.addLayout(voice_row)
-
+        style_card.layout.addLayout(style_row)
+        appearance_layout.addWidget(style_card)
+        preview_card = Card("Preview câu đang chọn", raised=True)
         self.quiz_preview = QTextEdit()
         self.quiz_preview.setObjectName("QuizPreview")
         self.quiz_preview.setReadOnly(True)
         self.quiz_preview.setPlaceholderText("Chọn một câu để review nội dung và nguồn...")
-        operate.layout.addWidget(self.quiz_preview, 1)
-
+        preview_card.layout.addWidget(self.quiz_preview)
         preview_controls = QHBoxLayout()
         self.quiz_preview_state_combo = QComboBox()
         self.quiz_preview_state_combo.setObjectName("QuizPreviewStateCombo")
@@ -855,50 +952,87 @@ class VoxStudioWindow(QMainWindow):
         self.quiz_preview_button = QPushButton("Preview style")
         self.quiz_preview_button.setObjectName("QuizPreviewButton")
         self.quiz_preview_button.setProperty("kind", "secondary")
-        self.quiz_save_style_button = QPushButton("Save style snapshot")
+        self.quiz_save_style_button = QPushButton("Áp dụng cho tập")
         self.quiz_save_style_button.setObjectName("QuizSaveStyleButton")
-        self.quiz_cancel_style_button = QPushButton("Cancel style")
+        self.quiz_cancel_style_button = QPushButton("Bỏ thay đổi")
         self.quiz_cancel_style_button.setObjectName("QuizCancelStyleButton")
         preview_controls.addWidget(self.quiz_preview_state_combo)
         preview_controls.addWidget(self.quiz_preview_aspect_combo)
         preview_controls.addWidget(self.quiz_preview_button)
         preview_controls.addWidget(self.quiz_save_style_button)
         preview_controls.addWidget(self.quiz_cancel_style_button)
-        operate.layout.addLayout(preview_controls)
-        self.quiz_preview_image = QLabel("Chưa có style preview")
+        preview_card.layout.addLayout(preview_controls)
+        self.quiz_appearance_preview = QuizFramePreview("Chưa có preview style")
+        self.quiz_appearance_preview.setObjectName("QuizAppearancePreview")
+        self.quiz_appearance_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.quiz_appearance_preview.setMinimumHeight(0)
+        self.quiz_appearance_preview.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Expanding)
+        self.quiz_appearance_preview.setProperty("preview_status", "empty")
+        preview_card.layout.addWidget(self.quiz_appearance_preview)
+        self.quiz_preview_image = QLabel("Chưa có exact frame preview")
         self.quiz_preview_image.setObjectName("QuizPreviewImage")
         self.quiz_preview_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.quiz_preview_image.setMinimumSize(280, 180)
         self.quiz_preview_image.setProperty("preview_status", "empty")
-        operate.layout.addWidget(self.quiz_preview_image)
+        self.quiz_preview_image.setParent(appearance_stage)
+        self.quiz_preview_image.hide()
         self.quiz_style_preview_status = QLabel("Preview chưa chạy")
         self.quiz_style_preview_status.setObjectName("QuizStylePreviewStatus")
         self.quiz_style_preview_status.setWordWrap(True)
-        operate.layout.addWidget(self.quiz_style_preview_status)
+        preview_card.layout.addWidget(self.quiz_style_preview_status)
+        appearance_layout.addWidget(preview_card, 1)
+
+        # Stage 4: voice/export controls and truthful prerequisites.
+        voice_stage = QWidget()
+        voice_stage.setObjectName("QuizStageVoice")
+        voice_layout = QVBoxLayout(voice_stage)
+        export_card = Card("Giọng & xuất", raised=True)
+        fmt_row = QHBoxLayout()
+        self.quiz_aspect_combo = QComboBox()
+        self.quiz_aspect_combo.setObjectName("QuizAspectCombo")
+        self.quiz_aspect_combo.addItems(["16:9 Ngang (YouTube Widescreen)", "9:16 Dọc (TikTok / Shorts)"])
+        fmt_row.addWidget(QLabel("Tỉ lệ output"))
+        fmt_row.addWidget(self.quiz_aspect_combo, 1)
+        export_card.layout.addLayout(fmt_row)
+        voice_row = QHBoxLayout()
+        self.quiz_voice_combo = QComboBox()
+        self.quiz_voice_combo.setObjectName("QuizVoiceCombo")
+        self.quiz_voice_combo.setEditable(False)
+        self.quiz_voice_combo.setProperty("voice_locale", "")
+        self.quiz_voice_combo.setProperty("voice_status", "unresolved")
+        self.quiz_voice_combo.setToolTip("Chọn kênh để nạp đúng Piper locale; không fallback âm thầm")
+        self.quiz_voice_combo.addItem("Chọn kênh trước để nạp giọng đúng locale", "")
+        self.quiz_speed_spin = QDoubleSpinBox()
+        self.quiz_speed_spin.setRange(0.25, 3.0)
+        self.quiz_speed_spin.setSingleStep(0.05)
+        self.quiz_speed_spin.setValue(1.05)
+        voice_row.addWidget(QLabel("Piper · Giọng / tốc độ"))
+        voice_row.addWidget(self.quiz_voice_combo)
+        voice_row.addWidget(self.quiz_speed_spin)
+        export_card.layout.addLayout(voice_row)
         self.quiz_approval_fingerprint = QLabel("Chưa duyệt")
         self.quiz_approval_fingerprint.setObjectName("QuizApprovalFingerprint")
         self.quiz_approval_fingerprint.setWordWrap(True)
-        operate.layout.addWidget(self.quiz_approval_fingerprint)
+        export_card.layout.addWidget(self.quiz_approval_fingerprint)
         self.quiz_output_dir = QLineEdit("output/quiz-pilot-5")
         self.quiz_output_dir.setObjectName("QuizOutputDir")
-        operate.layout.addWidget(self.quiz_output_dir)
+        export_card.layout.addWidget(self.quiz_output_dir)
         self.render_quiz_button = QPushButton("Render pilot 5 câu")
         self.render_quiz_button.setObjectName("RenderQuizButton")
         self.render_quiz_button.setProperty("kind", "primary")
         self.render_quiz_button.setEnabled(False)
-        operate.layout.addWidget(self.render_quiz_button)
+        export_card.layout.addWidget(self.render_quiz_button)
         self.quiz_progress = QProgressBar()
         self.quiz_progress.setObjectName("QuizProgress")
         self.quiz_progress.setRange(0, 100)
-        operate.layout.addWidget(self.quiz_progress)
+        export_card.layout.addWidget(self.quiz_progress)
         self.quiz_status = QLabel("Phase 2 · chưa gọi AI/TTS/render")
         self.quiz_status.setObjectName("QuizStatus")
         self.quiz_status.setWordWrap(True)
-        operate.layout.addWidget(self.quiz_status)
+        export_card.layout.addWidget(self.quiz_status)
         self.quiz_artifact_path = QLabel("Chưa có MP4")
         self.quiz_artifact_path.setObjectName("QuizArtifactPath")
-        operate.layout.addWidget(self.quiz_artifact_path)
-
+        export_card.layout.addWidget(self.quiz_artifact_path)
         quick_acts = QHBoxLayout()
         self.open_output_folder_button = QPushButton("📁 Thư mục video")
         self.open_output_folder_button.setObjectName("OpenOutputFolderButton")
@@ -906,9 +1040,15 @@ class VoxStudioWindow(QMainWindow):
         self.play_latest_video_button.setObjectName("PlayLatestVideoButton")
         quick_acts.addWidget(self.open_output_folder_button)
         quick_acts.addWidget(self.play_latest_video_button)
-        operate.layout.addLayout(quick_acts)
+        export_card.layout.addLayout(quick_acts)
+        voice_layout.addWidget(export_card, 1)
 
-        layout.addWidget(operate, 2)
+        self.quiz_stage_panels = [channel_stage, content_stage, appearance_stage, voice_stage]
+        for stage in self.quiz_stage_panels:
+            self.quiz_stage_stack.addWidget(stage)
+        root_layout.addWidget(self.quiz_stage_stack, 1)
+        page.setProperty("quiz_workflow_stages", 4)
+        page.setProperty("workflow_contract", "one-document-four-stages")
         return page
 
     def _build_logs_page(self) -> QWidget:
@@ -1210,14 +1350,187 @@ class VoxStudioWindow(QMainWindow):
                 if hasattr(self, "toggle_advanced_button"):
                     self.toggle_advanced_button.setText("▾ Thu gọn tab mở rộng")
 
+    def _on_quiz_stage_changed(self, index: int) -> None:
+        self.quiz_workflow_stage = int(index)
+        self.quiz_stage_stack.show()
+        for position, button in enumerate(getattr(self, "quiz_stage_buttons", [])):
+            button.setProperty("active", position == index)
+            button.style().unpolish(button)
+            button.style().polish(button)
+
+    def _toggle_quiz_alternative_input(self) -> None:
+        visible = not self.quiz_alternative_panel.isVisible()
+        self.quiz_alternative_panel.setVisible(visible)
+        self.quiz_other_input_toggle.setText(
+            "Cách nhập khác ▾" if visible else "Cách nhập khác ▸"
+        )
+
+    def _quiz_thumbnail_icon(self, style_id: str) -> QIcon:
+        """Render a real local thumbnail through the production question compositor."""
+        from PIL import Image, ImageDraw
+
+        from app.services.quiz_engine_v2 import QuizRenderOptions, QuizVideoEngineV2
+        from app.services.quiz_style_packs import resolve_style_snapshot
+
+        style = (
+            None
+            if style_id == "baseline"
+            else resolve_style_snapshot(style_id, locale="vi-VN", motion="medium")
+        )
+        engine = QuizVideoEngineV2(
+            QuizRenderOptions(
+                aspect_ratio="16:9",
+                language="vi",
+                visual_style=style,
+                channel_profile="locale-vi-VN" if style is not None else "",
+            )
+        )
+        question = {
+            "id": f"thumbnail-{style_id}",
+            "question": "Thủ đô của Việt Nam là gì?",
+            "choices": [
+                {"id": "A", "text": "Hà Nội"},
+                {"id": "B", "text": "Huế"},
+                {"id": "C", "text": "Đà Nẵng"},
+                {"id": "D", "text": "Cần Thơ"},
+            ],
+            "correct_id": "A",
+            "answer_text": "Hà Nội",
+            "explanation_text": "Fixture thumbnail local.",
+        }
+        canvas = Image.new("RGB", (1920, 1080), "black")
+        frame = engine._render_question_card(
+            canvas,
+            ImageDraw.Draw(canvas),
+            3,
+            {
+                "idx": 1,
+                "total_q": 1,
+                "q_start": 0,
+                "cd_start": 2,
+                "cd_dur": 6,
+                "rev_start": 8,
+                "rev_dur": 4,
+                "data": question,
+            },
+        ).convert("RGB")
+        image = QImage(
+            frame.tobytes(),
+            frame.width,
+            frame.height,
+            frame.width * 3,
+            QImage.Format.Format_RGB888,
+        ).copy()
+        pixmap = QPixmap.fromImage(image).scaled(
+            180,
+            102,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+        return QIcon(pixmap)
+
+    def mark_quiz_stage_dirty(self, message: str = "Có thay đổi chưa lưu") -> None:
+        self.quiz_stage_dirty.setText(message)
+        self.quiz_stage_dirty.setProperty("dirty", True)
+        self.quiz_stage_dirty.setProperty("workflow_status", "dirty")
+        self.quiz_stage_dirty.show()
+
+    def _on_quiz_channel_changed(self, _index: int = -1) -> None:
+        """Refresh the exact-locale Piper list whenever the country profile changes."""
+        from app.services.quiz_channel_profiles import PROFILES
+        from app.services.quiz_voice_registry import PiperVoiceError, resolve_voice_assets, voice_spec_for_locale
+
+        profile_id = str(self.quiz_channel_combo.currentData() or "")
+        locale = str(PROFILES.get(profile_id, {}).get("locale") or "")
+        self.quiz_voice_combo.blockSignals(True)
+        self.quiz_voice_combo.clear()
+        self.quiz_voice_combo.setProperty("voice_locale", locale)
+        if not locale:
+            self.quiz_voice_combo.addItem("Baseline · chọn engine/voice riêng", "")
+            self.quiz_voice_combo.setProperty("voice_status", "baseline")
+            self.quiz_voice_combo.blockSignals(False)
+            self.quiz_voice_combo.style().unpolish(self.quiz_voice_combo)
+            self.quiz_voice_combo.style().polish(self.quiz_voice_combo)
+            return
+        try:
+            spec = voice_spec_for_locale(locale)
+            assets = resolve_voice_assets(Path("assets/models/piper"), locale=locale, voice_id=spec.voice_id, strict=True)
+        except (PiperVoiceError, OSError) as exc:
+            self.quiz_voice_combo.addItem(f"Thiếu Piper exact-locale · {locale}", "")
+            self.quiz_voice_combo.setToolTip(str(exc))
+            self.quiz_voice_combo.setProperty("voice_status", "blocked")
+            self.quiz_voice_combo.blockSignals(False)
+            self.quiz_voice_combo.style().unpolish(self.quiz_voice_combo)
+            self.quiz_voice_combo.style().polish(self.quiz_voice_combo)
+            return
+        self.quiz_voice_combo.addItem(f"{spec.voice_id} · {locale} · {spec.quality}", spec.voice_id)
+        self.quiz_voice_combo.setCurrentIndex(0)
+        self.quiz_voice_combo.setProperty("voice_status", "ready")
+        self.quiz_voice_combo.style().unpolish(self.quiz_voice_combo)
+        self.quiz_voice_combo.style().polish(self.quiz_voice_combo)
+        self.quiz_voice_combo.setToolTip(
+            f"Exact locale {locale}; model={assets['model_path']}; config={assets['config_path']}"
+        )
+        self.quiz_voice_combo.blockSignals(False)
+
     def selected_visual_scene_id(self) -> str | None:
         item = self.visual_scene_list.currentItem()
         return str(item.data(Qt.ItemDataRole.UserRole)) if item is not None else None
 
     def set_quiz_document(self, quiz: dict) -> None:
         questions = list(quiz.get("questions") or [])
-        self.quiz_question_table.setRowCount(len(questions))
+        self.quiz_current_document = quiz
+        self.quiz_empty_state.setText(
+            f"{len(questions)} câu hỏi · "
+            + ("Đã có nội dung." if questions else "Hãy bắt đầu bằng nút Tạo nội dung từ chủ đề.")
+        )
+        self.quiz_empty_state.setVisible(True)
+        self.quiz_empty_state.setEnabled(True)
+        self.quiz_empty_state.setProperty("empty_state", not questions)
+        self.quiz_empty_state.show()
+        if not questions:
+            self.quiz_stage_stack.setCurrentIndex(1)
+        self.quiz_stage_dirty.setText("Bản nháp sạch")
+        self.quiz_stage_dirty.setVisible(False)
+        self.quiz_stage_dirty.setProperty("workflow_status", "clean")
+        self.quiz_round_group.blockSignals(True)
+        self.quiz_round_group.clear()
+        round_structure = quiz.get("round_structure") if isinstance(quiz.get("round_structure"), dict) else {}
+        rounds = round_structure.get("rounds") if isinstance(round_structure.get("rounds"), list) else []
+        if rounds:
+            for item in rounds:
+                if isinstance(item, dict):
+                    self.quiz_round_group.addItem(
+                        f"{item.get('label') or item.get('id')} · {item.get('count', 0)} câu",
+                        str(item.get("id") or ""),
+                    )
+        else:
+            self.quiz_round_group.addItem("Tất cả câu hỏi · legacy", "legacy")
+        self.quiz_round_group.blockSignals(False)
+        self.quiz_stage_channel_summary.setText(
+            f"Kênh: {quiz.get('channel_profile') or 'baseline'} · "
+            f"Locale: {quiz.get('language') or 'auto'} · {len(questions)} câu"
+        )
         is_v2 = bool(quiz.get("engine_v2"))
+        if is_v2:
+            self.quiz_question_table.setColumnCount(10)
+            self.quiz_question_table.setHorizontalHeaderLabels(
+                ["Vòng", "#", "Câu hỏi", "A", "D", "B", "C", "Đúng", "Nguồn", "Trạng thái"]
+            )
+            self.quiz_question_table.setColumnWidth(0, 88)
+            self.quiz_question_table.setColumnWidth(1, 42)
+            self.quiz_question_table.setColumnWidth(7, 56)
+            self.quiz_question_table.setColumnWidth(9, 84)
+        else:
+            self.quiz_question_table.setColumnCount(8)
+            self.quiz_question_table.setHorizontalHeaderLabels(
+                ["#", "Câu hỏi", "A", "B", "C", "Đúng", "Nguồn", "Trạng thái"]
+            )
+            self.quiz_question_table.setColumnWidth(0, 42)
+            self.quiz_question_table.setColumnWidth(5, 56)
+            self.quiz_question_table.setColumnWidth(7, 84)
+        self.quiz_question_table.setRowCount(len(questions))
+        self.quiz_question_table.blockSignals(True)
         style = quiz.get("visual_style") if isinstance(quiz.get("visual_style"), dict) else {}
         style_id = str(style.get("id") or "")
         motion = str(style.get("motion") or "medium")
@@ -1243,23 +1556,39 @@ class VoxStudioWindow(QMainWindow):
             opt_a = choices.get("A", "") or cards.get("1", "") or choices.get("1", "")
             opt_b = choices.get("B", "") or cards.get("2", "") or choices.get("2", "")
             opt_c = choices.get("C", "") or cards.get("3", "") or choices.get("3", "")
+            opt_d = choices.get("D", "") or cards.get("4", "") or choices.get("4", "")
             correct_val = str(question.get("correct_choice_id") or question.get("correct_option") or question.get("correct_id") or "")
 
-            values = (
-                str(question.get("order") or row + 1),
-                str(question.get("question") or ""),
-                opt_a,
-                opt_b,
-                opt_c,
-                correct_val,
-                source_url,
-                str(question.get("approval_status") or "draft"),
-            )
+            if is_v2:
+                values = (
+                    str(question.get("round_id") or "legacy"),
+                    str(question.get("order") or row + 1),
+                    str(question.get("question") or ""),
+                    opt_a,
+                    opt_d,
+                    opt_b,
+                    opt_c,
+                    correct_val,
+                    source_url,
+                    str(question.get("approval_status") or "draft"),
+                )
+            else:
+                values = (
+                    str(question.get("order") or row + 1),
+                    str(question.get("question") or ""),
+                    opt_a,
+                    opt_b,
+                    opt_c,
+                    correct_val,
+                    source_url,
+                    str(question.get("approval_status") or "draft"),
+                )
             for column, value in enumerate(values):
                 item = QTableWidgetItem(value)
-                if is_v2 or column in {0, 7}:
+                if column in {0, 9}:
                     item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 self.quiz_question_table.setItem(row, column, item)
+        self.quiz_question_table.blockSignals(False)
         approval = quiz.get("approval") or {}
         fingerprint = str(approval.get("content_fingerprint") or "")
 
@@ -1272,11 +1601,19 @@ class VoxStudioWindow(QMainWindow):
             except (ValueError, OSError):
                 reviewed = False
             settings = quiz.get("settings") or {}
-            voice = settings.get("piper_voice") or ("en_US-ryan-high" if quiz.get("language") == "en" else "manh_dung")
-            if self.quiz_voice_combo.findText(voice) < 0:
-                self.quiz_voice_combo.addItem(voice)
-            self.quiz_voice_combo.setCurrentText(voice)
+            persisted_voice = str(settings.get("piper_voice") or "")
+            locale = str(quiz.get("language") or "")
+            voice_index = self.quiz_voice_combo.findData(persisted_voice)
+            if voice_index >= 0:
+                self.quiz_voice_combo.setCurrentIndex(voice_index)
+            elif persisted_voice:
+                self.quiz_voice_combo.setToolTip(
+                    f"Đã lưu voice {persisted_voice!r} nhưng không thuộc exact locale {locale}"
+                )
+                self.quiz_voice_combo.setProperty("voice_status", "blocked")
             self.quiz_speed_spin.setValue(float(settings.get("piper_speed", 1.05)))
+            self.quiz_voice_combo.style().unpolish(self.quiz_voice_combo)
+            self.quiz_voice_combo.style().polish(self.quiz_voice_combo)
             self.render_quiz_button.setEnabled(reviewed)
             self.render_quiz_button.setText(f"Render bản đã duyệt ({len(questions)} câu)")
             self.approve_quiz_button.setText("Xem ảnh & duyệt nội dung")
@@ -1310,6 +1647,25 @@ class VoxStudioWindow(QMainWindow):
         if questions:
             self.quiz_question_table.setCurrentCell(0, 0)
             self.set_quiz_preview(questions[0], total=len(questions))
+
+        # Keep the selected question preview and thumbnail/status surfaces truthful.
+        self.quiz_style_thumbnail_list.setCurrentRow(
+            max(0, self.quiz_style_thumbnail_list.row(
+                next((
+                    item for item in (
+                        self.quiz_style_thumbnail_list.findItems(
+                            {"": "Baseline · legacy", "sport-scoreboard": "Sport Scoreboard", "editorial-culture": "Editorial Culture", "clear-knowledge": "Clear Knowledge"}.get(style_id, "Baseline · legacy"),
+                            Qt.MatchFlag.MatchExactly,
+                        )
+                    )
+                    if item is not None
+                ), None)
+            )) if self.quiz_style_thumbnail_list.count() else 0
+        )
+        self.quiz_stage_dirty.setVisible(False)
+        self.quiz_stage_dirty.setProperty("dirty", False)
+        self.quiz_stage_dirty.setProperty("workflow_status", "clean")
+        self._on_quiz_channel_changed()
 
     def confirm_quiz_visual_review(self, quiz: dict) -> bool:
         from PySide6.QtWidgets import QDialog, QDialogButtonBox
@@ -1375,30 +1731,58 @@ class VoxStudioWindow(QMainWindow):
                 edited.pop("channel_profile_version", None)
                 edited["language"] = "auto"
                 edited["approval"] = {"status": "draft"}
+            selected_voice = str(self.quiz_voice_combo.currentData() or "")
+            if edited.get("channel_profile") and not selected_voice:
+                raise ValueError("Piper exact-locale voice is missing for the selected country profile")
+            selected_locale = str(self.quiz_voice_combo.property("voice_locale") or "")
             edited.setdefault("settings", {}).update({
-                "tts_engine": "piper", "piper_voice": self.quiz_voice_combo.currentText(),
+                "tts_engine": "piper", "piper_voice": selected_voice,
+                "piper_locale": selected_locale,
                 "piper_speed": self.quiz_speed_spin.value(),
             })
             if edited.get("channel_profile"):
                 from app.services.quiz_channel_profiles import review_content
                 edited["editorial_qa"] = review_content(edited)
-            return edited
         changed = False
         for row, question in enumerate(edited.get("questions") or []):
             before = deepcopy(question)
-            question["question"] = self.quiz_question_table.item(row, 1).text().strip()
+            legacy_layout = not bool(edited.get("engine_v2"))
+            if legacy_layout:
+                question["question"] = self.quiz_question_table.item(row, 1).text().strip()
+                columns = ((2, "A"), (3, "B"), (4, "C"))
+                correct_column = 5
+                source_column = 6
+            else:
+                question["question"] = self.quiz_question_table.item(row, 2).text().strip()
+                columns = tuple(
+                    (column, self.quiz_question_table.horizontalHeaderItem(column).text())
+                    for column in range(3, 7)
+                )
+                correct_column = 7
+                source_column = 8
             choices = question.get("choices") or []
-            for column, choice_id in ((2, "A"), (3, "B"), (4, "C")):
+            for column, choice_id in columns:
                 match = next((item for item in choices if str(item.get("id")) == choice_id), None)
                 if match is not None:
                     match["text"] = self.quiz_question_table.item(row, column).text().strip()
-            correct_id = self.quiz_question_table.item(row, 5).text().strip().upper()
+            correct_id = self.quiz_question_table.item(row, correct_column).text().strip().upper()
+            prior_sources = before.get("fact_sources") or []
+            prior_source = prior_sources[0] if prior_sources else ""
+            prior_source = prior_source.get("url", "") if isinstance(prior_source, dict) else prior_source
+            if (question == before
+                    and correct_id == str(before.get("correct_choice_id") or before.get("correct_id") or before.get("correct_option") or "")
+                    and self.quiz_question_table.item(row, source_column).text().strip() == prior_source):
+                continue
+            if question.get("engine_v2") or edited.get("engine_v2"):
+                if "correct_id" in question:
+                    question["correct_id"] = correct_id
             question["correct_choice_id"] = correct_id
+
             correct = next((item for item in choices if str(item.get("id")) == correct_id), None)
             if correct is not None:
                 question["answer_text"] = str(correct.get("text") or "")
                 question["answer_voice"] = f"Đáp án là {question['answer_text']}."
-            source_url = self.quiz_question_table.item(row, 6).text().strip()
+            source_url = self.quiz_question_table.item(row, source_column).text().strip()
             sources = question.get("fact_sources") or []
             if sources and isinstance(sources[0], dict):
                 sources[0]["url"] = source_url
@@ -1414,7 +1798,8 @@ class VoxStudioWindow(QMainWindow):
         return edited
 
     def set_quiz_preview(self, question: dict, *, total: int | None = None) -> None:
-        ord_num = question.get('order') if question.get('order') is not None else 1
+        selected_row = self.quiz_question_table.currentRow()
+        ord_num = selected_row + 1 if selected_row >= 0 else (question.get('order') or 1)
         if "cards" in question:
             cards_lines = "\n".join(f"Card {c.get('id')}: {c.get('label')}" for c in question.get("cards") or [])
             self.quiz_preview.setPlainText(
@@ -1460,16 +1845,25 @@ class VoxStudioWindow(QMainWindow):
             )
         )
         self.quiz_preview_image.setProperty("preview_status", "ready")
+        self.quiz_appearance_preview.setText("")
+        self.quiz_appearance_preview.setPixmap(pixmap)
+        self.quiz_appearance_preview.setProperty("preview_status", "ready")
+        self.quiz_appearance_preview.show()
         self.quiz_style_preview_status.setText(
             f"Preview ready · style={payload.get('style_id', 'baseline')} · "
             f"motion={payload.get('motion', 'medium')} · {payload.get('aspect')} · {payload.get('state')} · "
             f"provider={payload.get('provider_calls', 0)} · TTS={payload.get('tts_calls', 0)}"
         )
+        self.quiz_style_preview_status.setMinimumHeight(44)
+        self.quiz_style_preview_status.setMaximumHeight(64)
 
     def set_quiz_style_preview_error(self, message: str) -> None:
         self.quiz_preview_image.setPixmap(QPixmap())
         self.quiz_preview_image.setText("Preview lỗi · chưa có ảnh hiện hành")
         self.quiz_preview_image.setProperty("preview_status", "error")
+        self.quiz_appearance_preview.setPixmap(QPixmap())
+        self.quiz_appearance_preview.setText("Preview lỗi · chưa có ảnh hiện hành")
+        self.quiz_appearance_preview.setProperty("preview_status", "error")
         self.quiz_style_preview_status.setText(f"Preview lỗi: {message}")
 
     def restore_quiz_style_controls(self, quiz: dict) -> None:
