@@ -204,6 +204,15 @@ from app.services.voice_profiles import (
     discover_reference_samples,
     sha256_file,
 )
+from app.services.quiz_fact_verifier import (
+    FactVerificationResult,
+    FactualVerificationError,
+    QuizFactVerifier,
+    STATUS_REJECTED_AMBIGUOUS,
+    STATUS_REJECTED_CONTRADICTION,
+    STATUS_REJECTED_NO_SOURCE,
+    STATUS_VERIFIED,
+)
 
 __all__ = [
     "ALL_PLACEMENTS",
