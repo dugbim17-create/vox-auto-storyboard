@@ -692,3 +692,28 @@
 - Known: nếu cả 2 chặng fail → lần chạy lại đòi reconcile ledger (đúng luật unknown-never-retried)
 - Next eligible task: (a) chốt sống/chết dòng engine cũ; (b) dọn ~70 mục untracked ở root; (c) tùy chọn 1 call probe grok qua đường policy để thêm chặng-3 fallback
 
+### TASK QZ-T04 — Bản địa hóa Hàn/Nhật (font CJK + badge + voice piper offline) — DONE
+
+- Finished: 2026-09-12 (chưa commit — chờ Boss)
+- Sản phẩm (0 call ảnh AI — tái dùng 5 ảnh chibi Đức; 0 call chat):
+  - `output/qa_mini_20260912/ko_legends_mini3.mp4` — 81,37s / 16.824.526 bytes / decode PASS — giọng nữ piper `ko_KR-kss-medium`
+  - `output/qa_mini_20260912/ja_legends_mini3.mp4` — 85,97s / ~17,9MB / decode PASS — giọng nữ piper `ja_JA-hi_fi_captain-medium`
+- Engine: `get_font` chọn font theo ngôn ngữ (ko → Malgun Gothic Bold, ja → Yu Gothic Bold) — hết tofu Hangul/Kana; badge độ khó ko/ja (쉬움/보통/어려움/파이널 보스 · 簡単/普通/難しい/ファイナルボス)
+- Hạ tầng: piper-tts 1.8.0 + pyopenjtalk-plus vào `.venv` project (voice ja cần ≥1.7; cài qua mirror Aliyun); tải `ja_JA-hi_fi_captain-medium` (76,75MB, md5 khớp catalog)
+- Chuẩn hóa tên riêng qua Wikipedia API: sửa "젭 마이어" → "제프 마이어" (+ tên ja)
+- Tests: 329 passed sau thay đổi font/badge
+- Known: voice ja chưa đăng ký registry GUI (đang đi đường trực tiếp `produce_localized.py`); speaker mặc định là nữ
+- Next: (a) commit; (b) đăng ký voice ja vào `quiz_voice_registry` nếu cần chọn qua GUI
+
+### TASK QZ-T05 — Video DÀI chủ đề mới: Deutschland-Quiz 50 câu — DONE (chờ Boss nghiệm thu nội dung)
+
+- Finished: 2026-09-12 (chưa commit)
+- Sản phẩm chính: `output/deutschland_quiz_50_20260912/deutschland_quiz_50.mp4` — 11:29 (688,77s) / 1920×1080@30 / 187,8MB / decode PASS (h264_nvenc + AAC stereo, audio mean −21,9dB)
+- Nội dung: 50 câu tiếng Đức chủ đề Deutschland (Landeshauptstädte, Geografie, Wahrzeichen, Sprache, Geschichte, Kultur) — 15 MC+ảnh reveal / 15 MC text (có HINWEIS) / 10 ô chữ / 5 mystery box / 5 duell; độ khó leo thang → FINAL BOSS (badge tự động q46-50)
+- Ảnh: 15/15 `gpt-image-2`, **0 fallback**, sạch chữ nhúng (kiểm vision 4 ảnh + policy wrapper); trần batch 17 submissions, dùng đúng 15
+- Grounding: `QuizFactVerifier` 38 VERIFIED + 10 GAMEPLAY_OPINION; 2 ca verifier tra nhầm trang → verify tay bằng Wikipedia (trích dẫn trong `output/deutschland_quiz_50_20260912/manual_verify.json`) ⇒ 50/50 có căn cứ
+- Engine fixes kèm theo: màu từ JSON (list) ở mystery_box + clue gây PIL TypeError → chuẩn hóa `tuple()` (4 điểm); outro de đổi hạng "FUSSBALL-GOTT/PROFI-SPIELER/CASUAL FAN/FAKE FAN" → trung tính "QUIZ-LEGENDE/QUIZ-PROFI/QUIZ-KENNER/ANFÄNGER" (dùng chung mọi video quiz Đức)
+- Chi phí: 0 call chat, 15 call ảnh (đúng trần đã duyệt), render local
+- Known: nhịp câu thực tế 6,5-9s/câu (CTA "3 Sekunden pro Frage" là câu i18n có sẵn của kênh — giữ nguyên); chưa publish
+- Next: (a) Boss nghiệm thu; (b) commit engine + docs; (c) muốn dài hơn nữa: thêm 10 câu text (0 ảnh) → ~13-14 phút
+
