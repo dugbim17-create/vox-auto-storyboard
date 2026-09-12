@@ -56,8 +56,12 @@ class CliproxyImageProvider:
         client_base_url = configured_base
         if httpx_client is None and configured_base.endswith("/v1"):
             client_base_url = configured_base[:-3].rstrip("/")
-        self.model = model or "gpt-image-1.5"
-        self.fallback_models = fallback_models or ["gpt-image-2", "gpt-image-1.5"]
+        self.model = model or "gpt-image-2"
+        # Fallback order = the usual gpt-image pair first, then grok-imagine-image as
+        # a last-resort only (never the default model). gpt-image-1.5 is excluded from
+        # the quiz asset allowlist (route ignores `size`, fixed 5:6 output fails the
+        # quiz layout gate; probes 2026-09-12, output/qa_ai_batch_20260912_canary1).
+        self.fallback_models = fallback_models or ["gpt-image-2", "gpt-image-1.5", "grok-imagine-image"]
         self.provider_name = "cliproxy_image"
         self.api_key = api_key if api_key is not None else settings.cliproxy_api_key
         self.timeout_seconds = timeout_seconds or settings.cliproxy_timeout_seconds

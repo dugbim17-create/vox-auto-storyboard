@@ -14,7 +14,10 @@ from app.services.quiz_image_layout import layout_prompt, inspect_layout
 from app.services.quiz_source_review import has_review_receipt
 
 VERSION = 'quiz-rights-v1'
-MODELS = {'gpt-image-2', 'gpt-image-1.5', 'gemini-3.1-flash-image'}
+# Quiz-asset allowlist. gpt-image-1.5 stays out: its CLIProxy route ignores `size`
+# (fixed 1145x1374, 5:6) and can never satisfy the layout gate (probes 2026-09-12).
+# grok-imagine-image is provider-fallback-only and not selectable for quiz assets.
+MODELS = {'gpt-image-2', 'gemini-3.1-flash-image'}
 LICENSES = {'CC0-1.0', 'CC-BY-3.0', 'CC-BY-4.0', 'PUBLIC-DOMAIN', 'OWNED'}
 
 

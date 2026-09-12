@@ -57,3 +57,14 @@ def test_unverified_clue_is_not_bypassed(tmp_path):
     q['clues'] = [{'image_path': str(photo)}]
     with pytest.raises(RuntimeError, match='generation'):
         asyncio.run(resolver.resolve_quiz_assets([q], tmp_path / 'out', rights_policy='verified_or_generate'))
+
+
+def test_policy_model_allowlist_excludes_unusable_and_fallback_only_models():
+    from app.services.quiz_asset_policy import MODELS
+
+    assert {'gpt-image-2', 'gemini-3.1-flash-image'} <= MODELS
+    # 2026-09-12: the CLIProxy route for gpt-image-1.5 ignores `size` (fixed 5:6
+    # output), so it can never satisfy slot geometry; keep it out until fixed.
+    assert 'gpt-image-1.5' not in MODELS
+    # grok-imagine-image is provider-fallback-only; not selectable for quiz assets.
+    assert 'grok-imagine-image' not in MODELS
