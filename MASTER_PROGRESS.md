@@ -683,3 +683,12 @@
 - Known limitations: `gpt-image-1.5` chỉ còn hữu dụng ngoài quiz (route không tôn trọng size); 5 pipeline dòng cũ hardcode 1.5 — chờ chốt dòng cũ; ảnh AI có thể chèn chữ nhúng nếu KHÔNG đi qua wrapper policy (quiz luôn dùng policy + review hình); quota gpt-image-2 nhạy theo thời điểm
 - Next eligible task: (a) chốt model chính thức cho kênh khi làm tập mới (28/28 ảnh baseline là gemini, GUI mặc định là gpt-image-2); (b) chốt sống/chết dòng engine cũ; (c) dọn script untracked ở root
 
+### TASK QZ-T03 — Fallback quota an toàn cho ảnh quiz — DONE
+
+- Finished: 2026-09-12 (commit `abf6fa0`)
+- Chốt với Boss: model ảnh CHÍNH THỨC của kênh = `gpt-image-2`; hết quota (429) → tự fallback sang `gemini-3.1-flash-image` (an toàn: đúng tỉ lệ 3:2, sạch chữ qua policy); KHÔNG bao giờ rơi vào gpt-image-1.5
+- `quiz_asset_policy.py`: `PRIMARY_MODEL`/`FALLBACK_MODEL`/`quota_exhausted()`; fallback chỉ kích hoạt khi lỗi quota; moderation/400 không reroute; sidecar ghi `model` thực đã sinh + `fallback_from` + `fallback_reason=quota`; `valid_record` chấp nhận lineage (re-run với model chính không regen); ASSET_CREDITS in kèm lineage
+- Tests: 329 passed (2 test mới: 429 → fallback + tái dùng; moderation → không reroute)
+- Known: nếu cả 2 chặng fail → lần chạy lại đòi reconcile ledger (đúng luật unknown-never-retried)
+- Next eligible task: (a) chốt sống/chết dòng engine cũ; (b) dọn ~70 mục untracked ở root; (c) tùy chọn 1 call probe grok qua đường policy để thêm chặng-3 fallback
+
