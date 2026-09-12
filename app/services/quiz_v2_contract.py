@@ -5,7 +5,15 @@ from typing import Any
 from PIL import Image
 
 
-SUPPORTED_MODES = ("4cards", "visual_riddle", "photo_reveal", "multiple_choice")
+SUPPORTED_MODES = (
+    "4cards",
+    "visual_riddle",
+    "photo_reveal",
+    "multiple_choice",
+    "word_tiles",
+    "mystery_box",
+    "this_or_that",
+)
 
 
 def detect_question_mode(q: dict[str, Any]) -> str:
@@ -18,6 +26,12 @@ def detect_question_mode(q: dict[str, Any]) -> str:
         return "photo_reveal"
     if "choices" in q:
         return "multiple_choice"
+    if "word_tiles" in q:
+        return "word_tiles"
+    if "boxes" in q:
+        return "mystery_box"
+    if "side_a" in q and "side_b" in q:
+        return "this_or_that"
     return "unknown"
 
 
@@ -58,7 +72,8 @@ def validate_questions(questions: Any, *, require_assets: bool = False) -> None:
         if mode == "unknown":
             raise ValueError(
                 f"{prefix}: unrecognized mode. Must declare 'cards' (4cards), "
-                f"'scene_image'/'scene_prompt' (visual_riddle), or 'choices' (multiple_choice / photo_reveal)."
+                f"'scene_image'/'scene_prompt' (visual_riddle), 'choices' (multiple_choice / photo_reveal), "
+                f"'word_tiles', 'boxes' (mystery_box), or 'side_a'/'side_b' (this_or_that)."
             )
 
         assets_to_check: list[tuple[str, Any]] = []
@@ -148,6 +163,20 @@ def validate_questions(questions: Any, *, require_assets: bool = False) -> None:
                     assets_to_check.append(("reveal_image_path", rev_img))
                 elif require_assets:
                     raise ValueError(f"{prefix}: reveal_image_path missing (unresolved prompt: {rev_prompt!r})")
+
+        elif mode == "word_tiles":
+            tiles = q.get("word_tiles")
+            if not isinstance(tiles, list) or len(tiles) == 0:
+                raise ValueError(f"{prefix}: word_tiles must be a non-empty list")
+
+        elif mode == "mystery_box":
+            boxes = q.get("boxes")
+            if not isinstance(boxes, list) or len(boxes) < 2:
+                raise ValueError(f"{prefix}: boxes must contain at least 2 boxes")
+
+        elif mode == "this_or_that":
+            if not isinstance(q.get("side_a"), dict) or not isinstance(q.get("side_b"), dict):
+                raise ValueError(f"{prefix}: this_or_that requires side_a and side_b objects")
 
         # Additional optional images
         for extra_key in ("scene_image", "reveal_image_path"):

@@ -187,11 +187,12 @@ class AntigravityImageProvider:
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {"responseModalities": ["IMAGE"]},
         }
-        # Respect the fixed output size only if a provider_param asks for it;
-        # the model otherwise returns its default 1408x768 landscape.
-        size = (request.provider_params or {}).get("size")
-        if size:
-            payload["generationConfig"]["imageConfig"] = {"size": size}
+        image_config: dict[str, Any] = {}
+        aspect_ratio = (request.provider_params or {}).get("aspectRatio") or request.aspect_ratio
+        if aspect_ratio:
+            image_config["aspectRatio"] = aspect_ratio
+        if image_config:
+            payload["generationConfig"]["imageConfig"] = image_config
         return payload
 
     async def _generate_with_retries(

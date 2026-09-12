@@ -1012,7 +1012,17 @@ class VoxStudioWindow(QMainWindow):
         self.approve_quiz_button = QPushButton("Duyệt 5 câu")
         self.approve_quiz_button.setObjectName("ApproveQuizButton")
         self.approve_quiz_button.setProperty("kind", "primary")
-        self.quiz_generate_assets_button = QPushButton("Sinh ảnh thiếu · tối đa 6")
+        self.quiz_generate_assets_button = QPushButton("Kiểm tra nguồn / sinh ảnh")
+        self.quiz_asset_budget = QSpinBox()
+        self.quiz_asset_budget.setObjectName("QuizAssetBudget")
+        self.quiz_asset_budget.setRange(1, 120)
+        self.quiz_asset_budget.setValue(6)
+        self.quiz_asset_budget.setPrefix("Trần request/tập: ")
+        self.quiz_asset_budget.setToolTip("Tính cả request lỗi; cache hợp lệ không tính. Không tự retry kết quả chưa rõ.")
+        self.quiz_review_card.layout.addWidget(self.quiz_asset_budget)
+        self.quiz_source_button = QPushButton("Nguồn ảnh / bằng chứng…")
+        self.quiz_source_button.setObjectName("QuizSourceButton")
+        self.quiz_review_card.layout.addWidget(self.quiz_source_button)
         actions.addWidget(self.save_quiz_draft_button)
         actions.addWidget(self.quiz_generate_assets_button)
         actions.addWidget(self.approve_quiz_button)
@@ -1713,6 +1723,7 @@ class VoxStudioWindow(QMainWindow):
         return str(item.data(Qt.ItemDataRole.UserRole)) if item is not None else None
 
     def set_quiz_document(self, quiz: dict) -> None:
+        self.quiz_asset_budget.setValue(int((quiz.get("asset_generation") or {}).get("request_limit", 6)))
         questions = list(quiz.get("questions") or [])
         self.quiz_current_document = quiz
         self.quiz_empty_state.setText(
@@ -1956,6 +1967,7 @@ class VoxStudioWindow(QMainWindow):
         from copy import deepcopy
 
         edited = deepcopy(quiz)
+        edited.setdefault("asset_generation", {})["request_limit"] = self.quiz_asset_budget.value()
         if edited.get("engine_v2"):
             key = self.quiz_channel_combo.currentData() or ""
             if key and key != edited.get("channel_profile"):

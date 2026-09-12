@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -34,8 +35,18 @@ def test_controller_passes_document_snapshot_to_options_without_provider(tmp_pat
             "choices": [{"id": "A", "text": "Đỏ"}, {"id": "B", "text": "Xanh"}],
             "correct_id": "A",
             "reveal_image_path": str(image_path),
+            "reveal_image_rights": {
+                "kind": "licensed", "license": "OWNED", "reviewed": True,
+                "author": "test fixture", "source_url": image_path.as_uri(),
+                "evidence_url": Path(__file__).resolve().as_uri(),
+                "license_url": "urn:quiz:test-fixture-owned", "changes": "none",
+                "sha256": hashlib.sha256(image_path.read_bytes()).hexdigest(),
+            },
         }],
     }
+    from app.services.quiz_source_review import register_review
+    unit = document['questions'][0]
+    unit['reveal_image_rights'] = register_review(image_path, unit['reveal_image_rights'], Path(__file__))
     approved = approve_document(document)
     seen = {}
 

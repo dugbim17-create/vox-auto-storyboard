@@ -87,10 +87,60 @@ SUPPORTED FORMATS:
   }
 ]
 
+4. Hangman Word Tiles (Missing Letters):
+[
+  {
+    "id": "q4",
+    "question": "GUESS THE HIDDEN WORD?",
+    "universe": "WORD TILES",
+    "word_tiles": [
+      [["S", true], ["P", false], ["I", true], ["D", false], ["E", true], ["R", false]]
+    ],
+    "answer_text": "SPIDER-MAN",
+    "voice_q": "Can you fill in the missing letters of this name?",
+    "voice_a": "That's Spider-Man, the iconic superhero!",
+    "countdown_seconds": 4.5
+  }
+]
+
+5. Lucky Mystery Box (Pick Box A, B, or C):
+[
+  {
+    "id": "q5",
+    "question": "MYSTERY BOX: PICK ONE BOX!",
+    "universe": "MYSTERY BOX",
+    "boxes": [
+      {"id": "A", "color": [241, 196, 15], "reward": "GOLDEN TROPHY"},
+      {"id": "B", "color": [231, 76, 60], "reward": "RED TRAP"},
+      {"id": "C", "color": [46, 204, 113], "reward": "DIAMOND CHEST"}
+    ],
+    "answer_text": "BOX A: TROPHY • BOX B: TRAP • BOX C: CHEST",
+    "voice_q": "Three mystery boxes appear. Which one do you pick?",
+    "voice_a": "Here is what was inside each box!",
+    "countdown_seconds": 5.0
+  }
+]
+
+6. 1 vs 1 Battle / This or That (Audience Polling):
+[
+  {
+    "id": "q6",
+    "question": "WHO WOULD WIN THIS BATTLE?",
+    "universe": "1 VS 1 BATTLE",
+    "side_a": {"name": "SON GOKU", "action": "HIT LIKE", "color": [241, 196, 15]},
+    "side_b": {"name": "SUPERMAN", "action": "COMMENT", "color": [52, 152, 219]},
+    "answer_text": "GOKU (LIKE) VS SUPERMAN (COMMENT)",
+    "voice_q": "The ultimate showdown! Like for Goku or Comment for Superman!",
+    "voice_a": "Vote in the comments to decide who wins!",
+    "countdown_seconds": 5.0
+  }
+]
+
 RULES:
 - Return ONLY the raw JSON array (no markdown backticks, no conversational text outside JSON).
 - Each question must have a unique 'id' (e.g. 'q1', 'q2').
 - 'countdown_seconds' must be a positive number between 3.0 and 15.0.
+- For human beings or famous characters, ALWAYS design visual prompts as 'Chibi 2D cute caricature portrait' or 'stylized animated vector art' to guarantee 100% copyright safety and friendly engagement. For nature/places/science, use cinematic 3D descriptions.
 """
 
 
@@ -177,10 +227,23 @@ def generate_quiz_json_with_ai(
         else f"Language: Strictly {language}."
     )
 
+    if format_type in ("multi_mode", "multimode", "mixed"):
+        format_spec = (
+            "DYNAMIC MULTI-MODE GAMESHOW: Seamlessly rotate question formats across the sequence to maximize viewer engagement:\n"
+            "- Multiple Choice with Photo Reveal\n"
+            "- 4-Cards Comparison (Odd One Out)\n"
+            "- Hangman Word Tiles (Missing letters)\n"
+            "- 1 vs 1 Battle / This or That (Audience polling)\n"
+            "- Lucky Mystery Boxes (Pick Box A, B, C)\n"
+            "The final question MUST be a climax FINAL BOSS with high stakes and maximum difficulty!"
+        )
+    else:
+        format_spec = f"Format preference: {format_type}."
+
     user_instructions = (
         f"Generate exactly {count} quiz questions.\n"
         f"Topic / Requirement: {prompt}\n"
-        f"Format preference: {format_type}.\n"
+        f"{format_spec}\n"
         f"{lang_instruction}\n"
         f"Output MUST be a valid JSON array of questions adhering to specifications with visual prompt descriptions."
     )

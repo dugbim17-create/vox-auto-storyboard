@@ -225,6 +225,7 @@ class VoxQtApp:
         self.window.research_quiz_button.clicked.connect(self._research_quiz)
         self.window.save_quiz_draft_button.clicked.connect(self._save_quiz_draft)
         self.window.quiz_generate_assets_button.clicked.connect(self._generate_quiz_assets)
+        self.window.quiz_source_button.clicked.connect(self._review_quiz_sources)
         self.window.approve_quiz_button.clicked.connect(self._approve_quiz)
         self.window.quiz_preview_button.clicked.connect(self._preview_quiz_style)
         self.window.quiz_save_style_button.clicked.connect(self._save_quiz_style)
@@ -1498,8 +1499,9 @@ class VoxQtApp:
                 import asyncio
                 from app.services.quiz_asset_resolver import resolve_quiz_assets
                 from app.services.quiz_v2_runtime import content_fingerprint
+                from app.services.quiz_episode_assets import episode_asset_dir
                 draft = self.window.read_quiz_review(self.quiz_document)
-                draft["questions"] = asyncio.run(resolve_quiz_assets(draft["questions"], Path(self.window.quiz_output_dir.text().strip() or "output/quiz") / "assets", allow_generation=False))
+                draft["questions"] = asyncio.run(resolve_quiz_assets(draft["questions"], episode_asset_dir(draft, Path(self.window.quiz_output_dir.text().strip() or "output/quiz")), allow_generation=False, rights_policy="verified_or_generate"))
                 before = content_fingerprint(draft)
                 if not self.window.confirm_quiz_visual_review(draft):
                     return
@@ -1544,20 +1546,45 @@ class VoxQtApp:
         if not self.quiz_document or not self.quiz_document.get("engine_v2"):
             self.window.quiz_status.setText("Nạp JSON Quiz V2 trước khi sinh ảnh")
             return
-        if QMessageBox.question(self.window, "Quyền sinh ảnh có phí", "Dùng gpt-image-2 qua CLIProxy, tối đa 6 request trong thư mục output này, tính cả lỗi. Không fallback model hoặc tự retry request chưa rõ kết quả. Tiếp tục?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No) != QMessageBox.StandardButton.Yes:
+        limit = self.window.quiz_asset_budget.value()
+        if QMessageBox.question(self.window, "Nguồn ảnh và quyền sinh ảnh", f"Ảnh có biên nhận duyệt nguồn cục bộ và bằng chứng còn nguyên sẽ được giữ; ảnh chưa đủ bằng chứng sẽ tạo minh họa gpt-image-2. Trần {limit} request/tập, tính cả lỗi; không tự retry kết quả chưa rõ. Không bảo đảm miễn tranh chấp. Cần duyệt hình trước export. Tiếp tục?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No) != QMessageBox.StandardButton.Yes:
             return
         from copy import deepcopy
         document = deepcopy(self.window.read_quiz_review(self.quiz_document))
         output = Path(self.window.quiz_output_dir.text().strip() or "output/quiz")
+        from app.services.quiz_episode_assets import episode_asset_dir
+        assets = episode_asset_dir(document, output, create=True)
+        document["asset_generation"]["request_limit"] = limit
+        # Persist episode identity before submission so failed/unknown jobs resume the same ledger.
+        from app.services.quiz_v2_runtime import save_document
+        self.quiz_document = document
+        self.window.quiz_file_path.setText(str(save_document(document, output)))
         self.window.quiz_generate_assets_button.setEnabled(False)
         def work():
             from app.services.quiz_asset_resolver import resolve_quiz_assets
             from app.services.quiz_v2_runtime import save_document
-            document["questions"] = asyncio.run(resolve_quiz_assets(document["questions"], output / "assets", image_model="gpt-image-2", allow_generation=True))
+            document["questions"] = asyncio.run(resolve_quiz_assets(document["questions"], assets, image_model="gpt-image-2", allow_generation=True, rights_policy="verified_or_generate", budget_limit=limit))
             document["approval"] = {"status": "draft"}
             path = save_document(document, output)
             return {"document": document, "path": str(path.resolve())}
         self.bridge.run("quiz_assets", work)
+
+    def _review_quiz_sources(self) -> None:
+        if not self.quiz_document or not self.quiz_document.get("engine_v2"):
+            self.window.quiz_status.setText("Nạp Quiz V2 trước khi quản lý nguồn ảnh.")
+            return
+        from app.ui_qt.quiz_source_dialog import QuizSourceDialog
+        from app.services.quiz_episode_assets import episode_asset_dir
+        from app.services.quiz_v2_runtime import save_document
+        document = self.window.read_quiz_review(self.quiz_document)
+        output = Path(self.window.quiz_output_dir.text().strip() or "output/quiz")
+        dialog = QuizSourceDialog(document, episode_asset_dir(document, output, create=True), self.window)
+        if dialog.exec() == dialog.DialogCode.Accepted:
+            path = save_document(dialog.document, output)
+            self.quiz_document = dialog.document
+            self.window.set_quiz_document(self.quiz_document)
+            self.window.quiz_file_path.setText(str(path))
+            self.window.quiz_status.setText("Đã lưu biên nhận nguồn · cần duyệt lại hình trước export.")
 
     @Slot()
     def _load_quiz(self) -> None:
@@ -1937,7 +1964,8 @@ class VoxQtApp:
             aspect_ratio = "9:16" if "9:16" in aspect_choice else "16:9"
             out_mp4 = output_dir / f"quiz_custom_master_{uuid.uuid4().hex[:12]}_{aspect_ratio.replace(':', '_')}.mp4"
             temp_out_mp4 = output_dir / f"temp_{uuid.uuid4().hex[:8]}_{aspect_ratio.replace(':', '_')}.mp4"
-            questions = asyncio.run(resolve_quiz_assets(document["questions"], output_dir / "assets", allow_generation=False))
+            from app.services.quiz_episode_assets import episode_asset_dir
+            questions = asyncio.run(resolve_quiz_assets(document["questions"], episode_asset_dir(document, output_dir), allow_generation=False, rights_policy="verified_or_generate"))
             archetype = document.get("archetype") or ("riddle_mystra" if any("cards" in q or "scene_image" in q for q in questions) else "classic")
             settings = document.get("settings") or {}
 

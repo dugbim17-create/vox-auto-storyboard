@@ -199,16 +199,44 @@ def draw_comic_text(
 def get_difficulty_badge(q_idx: int, total_q: int = 10, lang: str = "vi") -> tuple[str, tuple[int, int, int]]:
     """Calculates scaling difficulty badge and theme color based on question position."""
     ratio = q_idx / max(1, total_q)
-    if lang == "en":
+    code = (str(lang or "").lower().split("-")[0].split("_")[0]).strip()
+    if code == "de":
         if ratio <= 0.35:
-            return ("EASY", (46, 204, 113))
+            return ("LEICHT", (46, 204, 113))
         elif ratio <= 0.70:
-            return ("MEDIUM", (241, 196, 15))
+            return ("MITTEL", (241, 196, 15))
         elif ratio <= 0.90:
-            return ("HARD", (230, 126, 34))
+            return ("SCHWER", (230, 126, 34))
         else:
-            return ("GOD LEVEL", (231, 76, 60))
-    else:
+            return ("FINAL BOSS", (231, 76, 60))
+    elif code == "fr":
+        if ratio <= 0.35:
+            return ("FACILE", (46, 204, 113))
+        elif ratio <= 0.70:
+            return ("MOYEN", (241, 196, 15))
+        elif ratio <= 0.90:
+            return ("DIFFICILE", (230, 126, 34))
+        else:
+            return ("BOSS FINAL", (231, 76, 60))
+    elif code == "es":
+        if ratio <= 0.35:
+            return ("FÁCIL", (46, 204, 113))
+        elif ratio <= 0.70:
+            return ("MEDIO", (241, 196, 15))
+        elif ratio <= 0.90:
+            return ("DIFÍCIL", (230, 126, 34))
+        else:
+            return ("JEFE FINAL", (231, 76, 60))
+    elif code == "it":
+        if ratio <= 0.35:
+            return ("FACILE", (46, 204, 113))
+        elif ratio <= 0.70:
+            return ("MEDIO", (241, 196, 15))
+        elif ratio <= 0.90:
+            return ("DIFFICILE", (230, 126, 34))
+        else:
+            return ("BOSS FINALE", (231, 76, 60))
+    elif code == "vi":
         if ratio <= 0.35:
             return ("DỄ (EASY)", (46, 204, 113))
         elif ratio <= 0.70:
@@ -217,6 +245,15 @@ def get_difficulty_badge(q_idx: int, total_q: int = 10, lang: str = "vi") -> tup
             return ("KHÓ (HARD)", (230, 126, 34))
         else:
             return ("BÁ ĐẠO (GOD)", (231, 76, 60))
+    else:  # en and default fallback
+        if ratio <= 0.35:
+            return ("EASY", (46, 204, 113))
+        elif ratio <= 0.70:
+            return ("MEDIUM", (241, 196, 15))
+        elif ratio <= 0.90:
+            return ("HARD", (230, 126, 34))
+        else:
+            return ("GOD LEVEL", (231, 76, 60))
 
 
 # -------------------------------------------------------------
@@ -822,13 +859,44 @@ class QuizRenderOptions:
 
 class QuizVideoEngineV2:
     @property
-    def is_english(self) -> bool:
-        if self.opt.language == "en":
-            return True
-        if self.opt.language == "vi":
-            return False
+    def lang_code(self) -> str:
+        """Normalized 2-letter language code: 'de', 'en', 'vi', 'fr', 'es', 'it', 'ko', 'ja'."""
+        raw_lang = str(self.opt.language or "").lower().strip()
+        if raw_lang and raw_lang != "auto":
+            code = raw_lang.split("-")[0].split("_")[0]
+            if code in ("de", "en", "vi", "fr", "es", "it", "ko", "ja"):
+                return code
+            return "en"
         voice = str(self.opt.piper_voice or self.opt.voice_name or "").lower()
-        return voice.startswith("en_") or "en-" in voice or "english" in voice
+        for prefix in ("de", "en", "vi", "fr", "es", "it", "ko", "ja"):
+            if voice.startswith(f"{prefix}_") or voice.startswith(f"{prefix}-") or f"/{prefix}_" in voice or f"\\{prefix}_" in voice or f"/{prefix}-" in voice:
+                return prefix
+        if "thorsten" in voice or "german" in voice:
+            return "de"
+        if "english" in voice:
+            return "en"
+        if "vietnam" in voice or "vi_vn" in voice or "vi-vn" in voice:
+            return "vi"
+        if "vieneu" in str(self.opt.tts_engine).lower():
+            return "vi"
+        return "en"
+
+    @property
+    def is_german(self) -> bool:
+        return self.lang_code == "de"
+
+    @property
+    def is_english(self) -> bool:
+        return self.lang_code == "en"
+
+    @property
+    def is_vietnamese(self) -> bool:
+        return self.lang_code == "vi"
+
+    @property
+    def i18n(self) -> dict[str, Any]:
+        from app.services.quiz_locales import get_quiz_ui_strings
+        return get_quiz_ui_strings(self.lang_code)
 
     def __init__(self, options: QuizRenderOptions | None = None):
         self.opt = options or QuizRenderOptions()
@@ -892,7 +960,9 @@ class QuizVideoEngineV2:
         my_cutout_p = Path("assets/mascots_hoat_hinh/my_host_raw_cutout.png")
         
         target_h = 360 if self.opt.aspect_ratio == "16:9" else 300
-        if self.opt.mascot_type == "loc" and loc_cutout_p.exists():
+        if self.opt.mascot_type in ("none", "false", ""):
+            self.mascots = {}
+        elif self.opt.mascot_type == "loc" and loc_cutout_p.exists():
             raw_m = Image.open(loc_cutout_p).convert("RGBA")
             scale = target_h / max(1, raw_m.height)
             m_scaled = raw_m.resize((int(raw_m.width * scale), target_h), Image.Resampling.LANCZOS)
@@ -985,11 +1055,8 @@ class QuizVideoEngineV2:
                 return False
         ext = ".wav" if self.opt.tts_engine in {"piper", "vieneu"} else ".mp3"
         
-        default_intro = (
-            f"Welcome to the {self.opt.archetype} challenge! Can you get all {len(units)} questions right? Let's go!"
-            if self.is_english
-            else f"Chào mừng các bạn đến với thử thách đố vui! Cùng thử tài với {len(units)} câu hỏi ngay nào!"
-        )
+        arch_name = str(self.opt.archetype or "Quiz").title()
+        default_intro = self.i18n.get("default_intro_tts", "").format(archetype=arch_name, count=len(units))
         intro_text = (units[0].get("intro_text") if units and isinstance(units[0], dict) else None) or default_intro
         intro_hash = fingerprint(intro_text)
         intro_p = audio_dir / f"intro_{intro_hash}{ext}"
@@ -1002,7 +1069,7 @@ class QuizVideoEngineV2:
         for i, q in enumerate(units, 1):
             qid = str(q.get("id") or f"q{i}")
             q_text = q.get("voice_q") or q.get("question") or ""
-            default_ans = f"The correct answer is {q.get('answer_text', '')}!" if self.is_english else f"Đáp án là {q.get('answer_text', '')} nha!"
+            default_ans = self.i18n.get("default_ans_tts", "").format(answer=q.get('answer_text', ''))
             a_text = q.get("voice_a") or default_ans
             
             q_hash = fingerprint(q_text)
@@ -1018,11 +1085,7 @@ class QuizVideoEngineV2:
             tracks[f"q{i}_q"] = qp
             tracks[f"q{i}_a"] = ap
             
-        default_outro = (
-            "Time is up! How many questions did you answer correctly? Comment below, and make sure to like and subscribe!"
-            if self.is_english
-            else "Thời gian đã hết! Bạn đã trả lời đúng bao nhiêu câu? Hãy like và đăng ký kênh nhé!"
-        )
+        default_outro = self.i18n.get("default_outro_tts", "")
         outro_text = (units[-1].get("outro_text") if units and isinstance(units[-1], dict) else None) or default_outro
         outro_hash = fingerprint(outro_text)
         outro_p = audio_dir / f"outro_{outro_hash}{ext}"
@@ -1178,7 +1241,18 @@ class QuizVideoEngineV2:
                         bgm[idx:idx + n_len] += 0.25 * np.sin(2 * np.pi * notes[i % len(notes)] * t_sub) * np.exp(-t_sub * 16)
                 write_wav(p_bgm, bgm * 0.7)
 
-        return {"ding": p_ding, "countdown": p_cd, "bgm": p_bgm}
+        p_whoosh = audio_dir / "sfx_whoosh.wav"
+        if not p_whoosh.exists():
+            dur_w = 0.55
+            t_w = np.linspace(0, dur_w, int(sr * dur_w), endpoint=False)
+            noise = np.random.uniform(-1.0, 1.0, len(t_w))
+            env = np.sin(np.pi * t_w / dur_w) ** 2
+            freq_sweep = 300 + 1200 * np.sin(np.pi * t_w / dur_w)
+            tone = np.sin(2 * np.pi * freq_sweep * t_w) * 0.35
+            whoosh = (noise * 0.45 + tone) * env * 0.4
+            write_wav(p_whoosh, whoosh)
+
+        return {"ding": p_ding, "countdown": p_cd, "bgm": p_bgm, "whoosh": p_whoosh}
 
     def _probe_dur(self, file_path: Path) -> float:
         if not file_path.exists() or file_path.stat().st_size == 0:
@@ -1328,7 +1402,15 @@ class QuizVideoEngineV2:
         total_dur = cur_t
         total_dur = self._fit_target_duration(events, total_dur)
         total_frames = int(total_dur * self.opt.fps)
-        
+
+        codec_args = ["-c:v", "libx264", "-preset", "ultrafast"]
+        try:
+            chk = subprocess.run(["ffmpeg", "-encoders"], capture_output=True, text=True, timeout=5)
+            if "h264_nvenc" in chk.stdout:
+                codec_args = ["-c:v", "h264_nvenc", "-preset", "p4", "-cq", "23"]
+        except Exception:
+            pass
+
         cmd = [
             "ffmpeg", "-y",
             "-f", "rawvideo",
@@ -1336,8 +1418,7 @@ class QuizVideoEngineV2:
             "-s", f"{self.width}x{self.height}",
             "-r", str(self.opt.fps),
             "-i", "-",
-            "-c:v", "libx264",
-            "-preset", "ultrafast",
+            *codec_args,
             "-pix_fmt", "yuv420p",
             "-r", str(self.opt.fps),
             str(output_file)
@@ -1364,13 +1445,19 @@ class QuizVideoEngineV2:
             blur_bg=True
         )
         
-        for f in range(total_frames):
-            t = f / self.opt.fps
-            frame = self._render_frame_at_time(t, events, bg)
-            proc.stdin.write(frame.tobytes())
-            
-        proc.stdin.close()
-        proc.wait()
+        try:
+            for f in range(total_frames):
+                if f % 450 == 0:
+                    pct = (f / max(1, total_frames)) * 100.0
+                    print(f"[{pct:.1f}%] Video Render: Frame {f}/{total_frames} ({f/self.opt.fps:.1f}s / {total_dur:.1f}s)...", flush=True)
+                t = f / self.opt.fps
+                frame = self._render_frame_at_time(t, events, bg)
+                proc.stdin.write(frame.tobytes())
+            proc.stdin.close()
+            proc.wait()
+        except Exception:
+            proc.kill()
+            raise
         if proc.returncode != 0:
             raise RuntimeError(f"FFmpeg rawvideo pipeline failed with exit code {proc.returncode}")
         return total_dur, events
@@ -1402,138 +1489,143 @@ class QuizVideoEngineV2:
     def _render_intro_card(self, canvas: Image.Image, draw: ImageDraw.ImageDraw, t: float) -> Image.Image:
         if self.opt.channel_profile:
             return self._render_channel_cover(canvas, draw, False)
-        mascot = self.mascots["WELCOME"]
+        has_mascot = self.opt.mascot_type not in ("none", "false", "") and "WELCOME" in self.mascots
         bob = 8 * math.sin(t * 4.0)
         if self.opt.aspect_ratio == "16:9":
-            mx = 260
-            my = int(self.height // 2 - mascot.height // 2 + bob)
-            canvas.paste(mascot, (mx, my), mascot)
+            if has_mascot:
+                mascot = self.mascots["WELCOME"]
+                mx = 260
+                my = int(self.height // 2 - mascot.height // 2 + bob)
+                canvas.paste(mascot, (mx, my), mascot)
+                card_x0, card_x1 = 720, 1780
+                center_x = 1250
+            else:
+                card_x0, card_x1 = 360, 1560
+                center_x = 960
             
-            # Intro card on right 2/3: bounds [720, 240, 1780, 840], height 600px
-            draw.rounded_rectangle([720 + 6, 240 + 6, 1780 + 6, 840 + 6], radius=36, fill=(0, 0, 0, 85))
-            draw.rounded_rectangle([720, 240, 1780, 840], radius=36, fill=(25, 30, 45), outline=(255, 215, 0), width=6)
+            draw.rounded_rectangle([card_x0 + 6, 240 + 6, card_x1 + 6, 840 + 6], radius=36, fill=(0, 0, 0, 85))
+            draw.rounded_rectangle([card_x0, 240, card_x1, 840], radius=36, fill=(25, 30, 45), outline=(255, 215, 0), width=6)
             
             # Line 1: Golden arcade title flanked by 3D Lightning icons
-            font_title = get_font(60 if self.is_english else 64, bold=True)
-            title_txt = "THE ULTIMATE CHALLENGE" if self.is_english else "THỬ THÁCH TRÍ TUỆ"
-            paste_icon_with_text(canvas, draw, (1250, 380), title_txt, font_title, "lightning", icon_size=64, icon_side="both", fill=(255, 215, 0), stroke_color=(20, 20, 20), stroke_width=4)
+            title_txt = self.i18n.get("intro_title", "THE ULTIMATE CHALLENGE")
+            font_title = get_font(52 if len(title_txt) > 22 else 60, bold=True)
+            paste_icon_with_text(canvas, draw, (center_x, 380), title_txt, font_title, "lightning", icon_size=64, icon_side="both", fill=(255, 215, 0), stroke_color=(20, 20, 20), stroke_width=4)
             
             # Line 2: White subtitle
             font_sub = get_font(38, bold=True)
-            sub_txt = "CAN YOU SCORE 100%?" if self.is_english else "ĐỐ BẠN TRẢ LỜI ĐÚNG HẾT 100%!"
-            draw_comic_text(draw, (1250, 490), sub_txt, font=font_sub, fill=(255, 255, 255), stroke_width=3, stroke_color=(20, 20, 20))
+            sub_txt = self.i18n.get("intro_sub", "CAN YOU SCORE 100%?")
+            draw_comic_text(draw, (center_x, 490), sub_txt, font=font_sub, fill=(255, 255, 255), stroke_width=3, stroke_color=(20, 20, 20))
             
             # Line 3: High-contrast Rule Pill container with 3D Fire icon
-            draw.rounded_rectangle([860, 610, 1640, 700], radius=24, fill=(231, 76, 60), outline=(255, 255, 255), width=3)
-            font_cta = get_font(28 if self.is_english else 30, bold=True)
-            cta_txt = "3 SECONDS PER QUESTION • READY?" if self.is_english else "3 GIÂY MỖI CÂU • BẠN ĐÃ SẴN SÀNG?"
-            paste_icon_with_text(canvas, draw, (1250, 655), cta_txt, font_cta, "fire", icon_size=38, icon_side="left", fill=(255, 255, 255))
+            pill_w = 780
+            pill_x0 = center_x - pill_w // 2
+            draw.rounded_rectangle([pill_x0, 610, pill_x0 + pill_w, 700], radius=24, fill=(231, 76, 60), outline=(255, 255, 255), width=3)
+            cta_txt = self.i18n.get("intro_cta", "3 SECONDS PER QUESTION • READY?")
+            font_cta = get_font(26 if len(cta_txt) > 34 else 28, bold=True)
+            paste_icon_with_text(canvas, draw, (center_x, 655), cta_txt, font_cta, "fire", icon_size=38, icon_side="left", fill=(255, 255, 255))
         else:
             # 9:16 Vertical: Mascot top-center (y=260), Card below (y=680..1340)
-            target_h = min(380, int(self.height * 0.24))
-            m_scaled = mascot.resize((int(mascot.width * (target_h / max(1, mascot.height))), target_h), Image.Resampling.LANCZOS)
-            canvas.paste(m_scaled, (self.width // 2 - m_scaled.width // 2, int(260 + bob)), m_scaled)
+            if has_mascot:
+                mascot = self.mascots["WELCOME"]
+                target_h = min(380, int(self.height * 0.24))
+                m_scaled = mascot.resize((int(mascot.width * (target_h / max(1, mascot.height))), target_h), Image.Resampling.LANCZOS)
+                canvas.paste(m_scaled, (self.width // 2 - m_scaled.width // 2, int(260 + bob)), m_scaled)
             
             draw.rounded_rectangle([80 + 5, 680 + 6, 1000 + 5, 1340 + 6], radius=32, fill=(0, 0, 0, 85))
             draw.rounded_rectangle([80, 680, 1000, 1340], radius=32, fill=(25, 30, 45), outline=(255, 215, 0), width=5)
             
             # Line 1 with 3D Lightning
-            font_title = get_font(52 if self.is_english else 56, bold=True)
-            title_txt = "THE ULTIMATE CHALLENGE" if self.is_english else "THỬ THÁCH TRÍ TUỆ"
+            title_txt = self.i18n.get("intro_title", "THE ULTIMATE CHALLENGE")
+            font_title = get_font(44 if len(title_txt) > 20 else 52, bold=True)
             paste_icon_with_text(canvas, draw, (540, 810), title_txt, font_title, "lightning", icon_size=56, icon_side="both", fill=(255, 215, 0), stroke_color=(20, 20, 20), stroke_width=4)
             
             # Line 2
             font_sub = get_font(36, bold=True)
-            sub_txt = "CAN YOU SCORE 100%?" if self.is_english else "ĐỐ BẠN ĐÚNG HẾT 100%!"
+            sub_txt = self.i18n.get("intro_sub", "CAN YOU SCORE 100%?")
             draw_comic_text(draw, (540, 930), sub_txt, font=font_sub, fill=(255, 255, 255), stroke_width=3, stroke_color=(20, 20, 20))
             
             # Line 3: High-contrast Rule Pill container with 3D Fire icon
             draw.rounded_rectangle([150, 1060, 930, 1150], radius=24, fill=(231, 76, 60), outline=(255, 255, 255), width=3)
-            font_cta = get_font(28 if self.is_english else 30, bold=True)
-            cta_txt = "3S PER QUESTION • READY?" if self.is_english else "3 GIÂY / CÂU • BẮT ĐẦU NGAY!"
+            cta_txt = self.i18n.get("intro_cta_916", "3S PER QUESTION • READY?")
+            font_cta = get_font(26 if len(cta_txt) > 30 else 28, bold=True)
             paste_icon_with_text(canvas, draw, (540, 1105), cta_txt, font_cta, "fire", icon_size=36, icon_side="left", fill=(255, 255, 255))
         return canvas
 
     def _render_outro_card(self, canvas: Image.Image, draw: ImageDraw.ImageDraw, t: float) -> Image.Image:
         if self.opt.channel_profile:
             return self._render_channel_cover(canvas, draw, True)
-        mascot = self.mascots["CELEBRATE"]
+        has_mascot = self.opt.mascot_type not in ("none", "false", "") and "CELEBRATE" in self.mascots
         bob = 8 * math.sin(t * 4.0)
         if self.opt.aspect_ratio == "16:9":
-            mx = 240
-            my = int(self.height // 2 - mascot.height // 2 + bob)
-            canvas.paste(mascot, (mx, my), mascot)
+            if has_mascot:
+                mascot = self.mascots["CELEBRATE"]
+                mx = 240
+                my = int(self.height // 2 - mascot.height // 2 + bob)
+                canvas.paste(mascot, (mx, my), mascot)
+                card_x0, card_x1 = 680, 1800
+                center_x = 1240
+                tier_x0, tier_x1 = 740, 1740
+            else:
+                card_x0, card_x1 = 360, 1560
+                center_x = 960
+                tier_x0, tier_x1 = 420, 1500
             
-            # Scoreboard Arcade Card on right 2/3
-            draw.rounded_rectangle([680 + 6, 170 + 8, 1800 + 6, 930 + 8], radius=36, fill=(0, 0, 0, 85))
-            draw.rounded_rectangle([680, 170, 1800, 930], radius=36, fill=(25, 30, 45), outline=(255, 215, 0), width=6)
+            # Scoreboard Arcade Card
+            draw.rounded_rectangle([card_x0 + 6, 170 + 8, card_x1 + 6, 930 + 8], radius=36, fill=(0, 0, 0, 85))
+            draw.rounded_rectangle([card_x0, 170, card_x1, 930], radius=36, fill=(25, 30, 45), outline=(255, 215, 0), width=6)
             
             # Title with 3D Trophies on both sides
-            out_title = "FINAL SCOREBOARD" if self.is_english else "BẢNG TỔNG KẾT ĐIỂM SỐ"
-            paste_icon_with_text(canvas, draw, (1240, 250), out_title, get_font(50, bold=True), "trophy", icon_size=58, icon_side="both", fill=(255, 215, 0), stroke_color=(0, 0, 0), stroke_width=3)
+            out_title = self.i18n.get("outro_title", "FINAL SCOREBOARD")
+            paste_icon_with_text(canvas, draw, (center_x, 245), out_title, get_font(50, bold=True), "trophy", icon_size=58, icon_side="both", fill=(255, 215, 0), stroke_color=(0, 0, 0), stroke_width=3)
             
-            # Tiers with 3D Crown, Star, Fire
-            if self.is_english:
-                tiers = [
-                    ("TOP 1: 100% — GEOGRAPHY GENIUS", (46, 204, 113), "crown"),
-                    ("TOP 2: 70%+ — MASTER TRAVELER", (52, 152, 219), "star"),
-                    ("TOP 3: UNDER 50% — KEEP PRACTICING", (231, 76, 60), "fire"),
-                ]
-            else:
-                tiers = [
-                    ("TOP 1: ĐÚNG 100% — THIÊN TÀI TRÍ TUỆ", (46, 204, 113), "crown"),
-                    ("TOP 2: ĐÚNG 70%+ — CAO THỦ XUẤT SẮC", (52, 152, 219), "star"),
-                    ("TOP 3: DƯỚI 50% — CẦN CỐ GẮNG THÊM", (231, 76, 60), "fire"),
-                ]
+            # 4 Tiers with 3D Crown, Star, Fire
+            tiers = self.i18n.get("outro_tiers", [])
+            tier_count = max(1, len(tiers))
+            step_y = min(92, int(370 / tier_count))
+            tier_h = min(74, step_y - 12)
             for ti, (t_text, t_color, t_icon) in enumerate(tiers):
-                ty = 360 + ti * 105
-                draw.rounded_rectangle([740, ty, 1740, ty + 80], radius=20, fill=(35, 42, 60), outline=t_color, width=3)
-                paste_icon_with_text(canvas, draw, (795, ty + 40), "", get_font(32, bold=True), t_icon, icon_size=46, icon_side="left")
-                draw.text((845, ty + 40), t_text, font=get_font(32, bold=True), fill=(255, 255, 255), anchor="lm")
+                ty = 320 + ti * step_y
+                draw.rounded_rectangle([tier_x0, ty, tier_x1, ty + tier_h], radius=18, fill=(35, 42, 60), outline=t_color, width=3)
+                paste_icon_with_text(canvas, draw, (tier_x0 + 55, ty + tier_h // 2), "", get_font(28, bold=True), t_icon, icon_size=40, icon_side="left")
+                draw.text((tier_x0 + 105, ty + tier_h // 2), t_text, font=get_font(26 if len(t_text) > 35 else 28, bold=True), fill=(255, 255, 255), anchor="lm")
             
             # Strong CTA Button with 3D Speech Balloon & Thumbs Up!
-            draw.rounded_rectangle([740, 715, 1740, 845], radius=28, fill=(231, 76, 60), outline=(255, 255, 255), width=4)
-            cta1_txt = "COMMENT YOUR SCORE BELOW!" if self.is_english else "BẠN ĐẠT MẤY ĐIỂM? BÌNH LUẬN NGAY!"
-            cta2_txt = "LIKE & SUBSCRIBE FOR NEXT ROUND!" if self.is_english else "LIKE & ĐĂNG KÝ KÊNH ĐỂ ĐẤU TIẾP VÒNG SAU!"
-            paste_icon_with_text(canvas, draw, (1240, 755), cta1_txt, get_font(36, bold=True), "speech_balloon", icon_size=42, icon_side="left", fill=(255, 255, 255), stroke_color=(0, 0, 0), stroke_width=2)
-            paste_icon_with_text(canvas, draw, (1240, 805), cta2_txt, get_font(24, bold=True), "thumbs_up", icon_size=32, icon_side="left", fill=(255, 215, 0))
+            draw.rounded_rectangle([tier_x0, 715, tier_x1, 855], radius=26, fill=(231, 76, 60), outline=(255, 255, 255), width=4)
+            cta1_txt = self.i18n.get("outro_cta1", "COMMENT YOUR SCORE BELOW!")
+            cta2_txt = self.i18n.get("outro_cta2", "LIKE & SUBSCRIBE FOR NEXT ROUND!")
+            paste_icon_with_text(canvas, draw, (center_x, 755), cta1_txt, get_font(30 if len(cta1_txt) > 38 else 34, bold=True), "speech_balloon", icon_size=40, icon_side="left", fill=(255, 255, 255), stroke_color=(0, 0, 0), stroke_width=2)
+            paste_icon_with_text(canvas, draw, (center_x, 808), cta2_txt, get_font(24, bold=True), "thumbs_up", icon_size=30, icon_side="left", fill=(255, 255, 255), stroke_color=(0, 0, 0), stroke_width=2)
         else:
             # 9:16 Vertical Shorts Scoreboard
-            target_h = min(360, int(self.height * 0.22))
-            m_scaled = mascot.resize((int(mascot.width * (target_h / max(1, mascot.height))), target_h), Image.Resampling.LANCZOS)
-            canvas.paste(m_scaled, (self.width // 2 - m_scaled.width // 2, int(220 + bob)), m_scaled)
+            if has_mascot:
+                mascot = self.mascots["CELEBRATE"]
+                target_h = min(360, int(self.height * 0.22))
+                m_scaled = mascot.resize((int(mascot.width * (target_h / max(1, mascot.height))), target_h), Image.Resampling.LANCZOS)
+                canvas.paste(m_scaled, (self.width // 2 - m_scaled.width // 2, int(220 + bob)), m_scaled)
             
             draw.rounded_rectangle([80 + 5, 620 + 6, 1000 + 5, 1420 + 6], radius=32, fill=(0, 0, 0, 85))
             draw.rounded_rectangle([80, 620, 1000, 1420], radius=32, fill=(25, 30, 45), outline=(255, 215, 0), width=5)
             
-            out_title_916 = "FINAL SCOREBOARD" if self.is_english else "BẢNG TỔNG KẾT ĐIỂM"
+            out_title_916 = self.i18n.get("outro_title_916", "FINAL SCOREBOARD")
             paste_icon_with_text(canvas, draw, (540, 700), out_title_916, get_font(46, bold=True), "trophy", icon_size=52, icon_side="both", fill=(255, 215, 0), stroke_color=(0, 0, 0), stroke_width=3)
             
             # Tiers with 3D icons
-            if self.is_english:
-                tiers_916 = [
-                    ("TOP 1: 100% — GENIUS", (46, 204, 113), "crown"),
-                    ("TOP 2: 70%+ — MASTER", (52, 152, 219), "star"),
-                    ("TOP 3: UNDER 50% — PRACTICE", (231, 76, 60), "fire"),
-                ]
-            else:
-                tiers_916 = [
-                    ("TOP 1: ĐÚNG HẾT — THIÊN TÀI", (46, 204, 113), "crown"),
-                    ("TOP 2: ĐÚNG 70%+ — XUẤT SẮC", (52, 152, 219), "star"),
-                    ("TOP 3: DƯỚI 50% — CẦN TẬP TIẾP", (231, 76, 60), "fire"),
-                ]
+            tiers_916 = self.i18n.get("outro_tiers_916", [])
+            tier_count = max(1, len(tiers_916))
+            step_y = min(96, int(390 / tier_count))
+            tier_h = min(78, step_y - 12)
             for ti, (t_text, t_color, t_icon) in enumerate(tiers_916):
-                ty = 780 + ti * 110
-                draw.rounded_rectangle([120, ty, 960, ty + 90], radius=18, fill=(35, 42, 60), outline=t_color, width=3)
-                paste_icon_with_text(canvas, draw, (170, ty + 45), "", get_font(30, bold=True), t_icon, icon_size=42, icon_side="left")
-                draw.text((220, ty + 45), t_text, font=get_font(30, bold=True), fill=(255, 255, 255), anchor="lm")
+                ty = 760 + ti * step_y
+                draw.rounded_rectangle([120, ty, 960, ty + tier_h], radius=16, fill=(35, 42, 60), outline=t_color, width=3)
+                paste_icon_with_text(canvas, draw, (170, ty + tier_h // 2), "", get_font(28, bold=True), t_icon, icon_size=38, icon_side="left")
+                draw.text((220, ty + tier_h // 2), t_text, font=get_font(26 if len(t_text) > 28 else 28, bold=True), fill=(255, 255, 255), anchor="lm")
             
             # CTA at bottom
-            draw.rounded_rectangle([120, 1180, 960, 1360], radius=24, fill=(231, 76, 60), outline=(255, 255, 255), width=4)
-            cta1_916 = "COMMENT YOUR SCORE BELOW!" if self.is_english else "BẠN ĐẠT MẤY ĐIỂM? BÌNH LUẬN NGAY!"
-            cta2_916 = "LIKE & FOLLOW FOR NEXT ROUND!" if self.is_english else "LIKE & FOLLOW ĐỂ XEM TIẾP!"
-            paste_icon_with_text(canvas, draw, (540, 1245), cta1_916, get_font(30 if self.is_english else 32, bold=True), "speech_balloon", icon_size=38, icon_side="left", fill=(255, 255, 255), stroke_color=(0, 0, 0), stroke_width=2)
-            paste_icon_with_text(canvas, draw, (540, 1305), cta2_916, get_font(24, bold=True), "thumbs_up", icon_size=28, icon_side="left", fill=(255, 215, 0))
+            draw.rounded_rectangle([120, 1170, 960, 1350], radius=24, fill=(231, 76, 60), outline=(255, 255, 255), width=4)
+            cta1_916 = self.i18n.get("outro_cta1_916", "COMMENT YOUR SCORE BELOW!")
+            cta2_916 = self.i18n.get("outro_cta2_916", "LIKE & FOLLOW FOR NEXT ROUND!")
+            paste_icon_with_text(canvas, draw, (540, 1235), cta1_916, get_font(28 if len(cta1_916) > 32 else 30, bold=True), "speech_balloon", icon_size=38, icon_side="left", fill=(255, 255, 255), stroke_color=(0, 0, 0), stroke_width=2)
+            paste_icon_with_text(canvas, draw, (540, 1295), cta2_916, get_font(24, bold=True), "thumbs_up", icon_size=28, icon_side="left", fill=(255, 215, 0))
         return canvas
 
     def _render_channel_cover(self, canvas, draw, outro=False):
@@ -1569,6 +1661,19 @@ class QuizVideoEngineV2:
             return self._render_riddle_mystra(canvas, draw, t, ev, cd_elapsed, is_cd, is_rev)
 
         if self.opt.aspect_ratio == "16:9":
+            # Live Gamified Score Meter HUD (Top Left)
+            draw.rounded_rectangle([30 + 3, 35 + 4, 175 + 3, 150 + 4], radius=22, fill=(0, 0, 0, 75))
+            draw.rounded_rectangle([30, 35, 175, 150], radius=22, fill=(24, 30, 48), outline=(255, 215, 0), width=3)
+            paste_icon_with_text(canvas, draw, (102, 68), "PKT", get_font(18, bold=True), "trophy", icon_size=24, icon_side="left", fill=(255, 215, 0))
+            score_pts = (q_idx - 1) * 20 + (20 if is_rev else 0)
+            draw.text((102, 114), f"{score_pts}", font=get_font(28, bold=True), fill=(46, 204, 113) if is_rev else (255, 255, 255), anchor="mm")
+            
+            if is_rev:
+                t_rev = max(0.0, t - ev["rev_start"])
+                if t_rev <= 1.4:
+                    burst_y = int(185 - t_rev * 25)
+                    draw_comic_text(draw, (102, burst_y), "+20 PKT!", font=get_font(22, bold=True), fill=(46, 204, 113), stroke_color=(0, 0, 0), stroke_width=3)
+
             # Dynamic Font Fit for Question Title with Comic Polish
             q_text = q_data.get("question", "ĐỐ VUI")
             font_size_q = 44
@@ -1582,11 +1687,11 @@ class QuizVideoEngineV2:
             draw.text((895, 92), q_text, font=font_h, fill=(25, 25, 30), anchor="mm")
             
             # Difficulty & Level Badge (Top Right)
-            diff_label, diff_color = get_difficulty_badge(q_idx, ev.get("total_q", 10), lang="en" if self.is_english else "vi")
+            diff_label, diff_color = get_difficulty_badge(q_idx, ev.get("total_q", 10), lang=self.lang_code)
             draw.rounded_rectangle([1620 + 4, 35 + 5, 1900 + 4, 150 + 5], radius=24, fill=(0, 0, 0, 75))
             draw.rounded_rectangle([1620, 35, 1900, 150], radius=24, fill=diff_color, outline=(255, 255, 255), width=3)
-            q_label = f"QUESTION {q_idx}" if self.is_english else f"CÂU {q_idx}"
-            paste_icon_with_text(canvas, draw, (1760, 72), q_label, get_font(24 if self.is_english else 28, bold=True), "fire", icon_size=32, icon_side="left", fill=(255, 255, 255), stroke_color=(20, 20, 20), stroke_width=2)
+            q_label = f"{self.i18n.get('question', 'QUESTION')} {q_idx}"
+            paste_icon_with_text(canvas, draw, (1760, 72), q_label, get_font(24 if not self.is_vietnamese else 28, bold=True), "fire", icon_size=32, icon_side="left", fill=(255, 255, 255), stroke_color=(20, 20, 20), stroke_width=2)
             draw.text((1760, 114), diff_label, font=get_font(18, bold=True), fill=(255, 255, 255), anchor="mm")
             
             # 1. Mode: Mystery Box
@@ -1633,9 +1738,11 @@ class QuizVideoEngineV2:
                     font_q = get_font(56, bold=True)
                     draw.text((960, int(500 + bob)), q_data.get("question", ""), font=font_q, fill=(255, 255, 255), anchor="mm")
                 
-            mascot = self.mascots[mascot_state]
-            my_y = int(self.height - mascot.height - 20 + bob * 0.5)
-            canvas.paste(mascot, (60, my_y), mascot)
+            has_mascot = self.opt.mascot_type not in ("none", "false", "") and mascot_state in self.mascots
+            if has_mascot:
+                mascot = self.mascots[mascot_state]
+                my_y = int(self.height - mascot.height - 20 + bob * 0.5)
+                canvas.paste(mascot, (60, my_y), mascot)
             
             if is_rev:
                 self._draw_reveal_bar(draw, 340, 880, 1500, 110, q_data.get("answer_text", ""), t, ev["rev_start"])
@@ -1662,11 +1769,11 @@ class QuizVideoEngineV2:
                 draw.text((540, 225), q_text, font=font_h, fill=(25, 25, 30), anchor="mm")
             
             # Difficulty & Level Badge (Pill in Center)
-            diff_label, diff_color = get_difficulty_badge(q_idx, ev.get("total_q", 10), lang="en" if self.is_english else "vi")
+            diff_label, diff_color = get_difficulty_badge(q_idx, ev.get("total_q", 10), lang=self.lang_code)
             draw.rounded_rectangle([250 + 4, 325 + 4, 830 + 4, 395 + 4], radius=22, fill=(0, 0, 0, 75))
             draw.rounded_rectangle([250, 325, 830, 395], radius=22, fill=diff_color, outline=(255, 255, 255), width=3)
-            q_center_lbl = f"QUESTION {q_idx} - {diff_label}" if self.is_english else f"CÂU {q_idx} - {diff_label}"
-            paste_icon_with_text(canvas, draw, (540, 360), q_center_lbl, get_font(24 if self.is_english else 28, bold=True), "fire", icon_size=32, icon_side="left", fill=(255, 255, 255), stroke_color=(20, 20, 20), stroke_width=2)
+            q_center_lbl = f"{self.i18n.get('question', 'QUESTION')} {q_idx} - {diff_label}"
+            paste_icon_with_text(canvas, draw, (540, 360), q_center_lbl, get_font(24 if not self.is_vietnamese else 28, bold=True), "fire", icon_size=32, icon_side="left", fill=(255, 255, 255), stroke_color=(20, 20, 20), stroke_width=2)
             
             if "boxes" in q_data:
                 self._draw_mystery_boxes_916(draw, canvas, q_data["boxes"], is_rev, bob)
@@ -1743,13 +1850,16 @@ class QuizVideoEngineV2:
                 is_correct = (cid == correct_opt)
                 c_bob = 6 * math.sin(t * 3.5 + i)
 
-                # Card Outer Box
-                border_col = (46, 204, 113) if (is_rev and is_correct) else (240, 240, 240)
+                # Card Outer Box (Clean static grid without bobbing distortion)
+                box_y0 = cy
+                box_y1 = cy + card_h
+                border_col = (46, 204, 113) if (is_rev and is_correct) else (60, 75, 110)
                 border_w = 6 if (is_rev and is_correct) else 3
-                draw.rounded_rectangle([cx + 4, int(cy + c_bob) + 6, cx + card_w + 4, int(cy + card_h + c_bob) + 6], radius=24, fill=(0, 0, 0, 90))
-                draw.rounded_rectangle([cx, int(cy + c_bob), cx + card_w, int(cy + card_h + c_bob)], radius=24, fill=(24, 30, 46), outline=border_col, width=border_w)
-
-                # Photo inside card
+                # Drop shadow
+                draw.rounded_rectangle([cx + 5, box_y0 + 6, cx + card_w + 5, box_y1 + 6], radius=24, fill=(0, 0, 0, 95))
+                # Base Card
+                draw.rounded_rectangle([cx, box_y0, cx + card_w, box_y1], radius=24, fill=(24, 30, 46), outline=border_col, width=border_w)
+                
                 cache_key = f"_cached_c_img_{w}_{h}"
                 cached_c_img = c_info.get(cache_key)
                 if cached_c_img is None:
@@ -1758,49 +1868,74 @@ class QuizVideoEngineV2:
                         try:
                             with Image.open(cp) as raw_p:
                                 im_p = raw_p.convert("RGB")
-                                pw, ph = image_slot("card", self.opt.aspect_ratio).size
-                                nw, nh = fitted_size(im_p.size, (pw, ph))
+                                slot_w = card_w - 20
+                                slot_h = card_h - 115 if c_info.get("label") else (card_h - 115)
+                                nw, nh = fitted_size(im_p.size, (slot_w, slot_h))
                                 im_res = im_p.resize((nw, nh), Image.Resampling.LANCZOS)
-                                x0 = (pw - nw) // 2
-                                y0 = (ph - nh) // 2
-                                cached_c_img = Image.new("RGB", (pw, ph), (24, 30, 46))
+                                x0 = (slot_w - nw) // 2
+                                y0 = (slot_h - nh) // 2
+                                cached_c_img = Image.new("RGB", (slot_w, slot_h), (24, 30, 46))
                                 cached_c_img.paste(im_res, (x0, y0))
                                 c_info[cache_key] = cached_c_img
                         except Exception:
                             pass
 
                 if cached_c_img is not None:
-                    canvas.paste(cached_c_img, (cx + 20, int(cy + 105 + c_bob)))
+                    canvas.paste(cached_c_img, (cx + 10, box_y0 + 95))
+
+            # If reveal phase: apply sleek semi-transparent dimming to all incorrect cards
+            if is_rev:
+                dim_layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+                d_dim = ImageDraw.Draw(dim_layer)
+                for i, c_info in enumerate(cards):
+                    cid = str(c_info.get("id") or str(i + 1))
+                    if cid != correct_opt:
+                        cx = start_x + (i % columns) * (card_w + gap)
+                        cy = y_start + (i // columns) * (card_h + 30)
+                        d_dim.rounded_rectangle([cx, cy, cx + card_w, cy + card_h], radius=24, fill=(5, 8, 16, 140))
+                canvas = Image.alpha_composite(canvas, dim_layer)
+                draw = ImageDraw.Draw(canvas)
+
+            # Draw top badges and detail labels
+            for i, c_info in enumerate(cards):
+                cx = start_x + (i % columns) * (card_w + gap)
+                cy = y_start + (i // columns) * (card_h + 30)
+                box_y0 = cy
+                box_y1 = cy + card_h
+                cid = str(c_info.get("id") or str(i + 1))
+                is_correct = (cid == correct_opt)
 
                 # Top-Center Circular Badge (1, 2, 3, 4)
                 badge_x = cx + card_w // 2
-                badge_y = int(cy + 55 + c_bob)
+                badge_y = box_y0 + 50
                 badge_r = 38
-                b_fill = (46, 204, 113) if (is_rev and is_correct) else (214, 38, 38)
-                draw.ellipse([badge_x - badge_r, badge_y - badge_r, badge_x + badge_r, badge_y + badge_r], fill=b_fill, outline=(255, 255, 255), width=4)
+                b_fill = (46, 204, 113) if (is_rev and is_correct) else ((120, 30, 30) if (is_rev and not is_correct) else (214, 38, 38))
+                draw.ellipse([badge_x - badge_r, badge_y - badge_r, badge_x + badge_r, badge_y + badge_r], fill=b_fill, outline=(255, 255, 255) if (not is_rev or is_correct) else (140, 140, 140), width=4)
                 font_num = get_font(44, bold=True)
-                draw.text((badge_x, badge_y), cid, font=font_num, fill=(255, 255, 255), anchor="mm")
+                draw.text((badge_x, badge_y), cid, font=font_num, fill=(255, 255, 255) if (not is_rev or is_correct) else (180, 180, 180), anchor="mm")
 
-                # Bottom Detail Label Container
-                lbl_y1 = int(cy + card_h - 150 + c_bob)
-                lbl_y2 = int(cy + card_h - 20 + c_bob)
-                draw.rounded_rectangle([cx + 20, lbl_y1, cx + card_w - 20, lbl_y2], radius=18, fill=(18, 22, 34), outline=(255, 215, 0) if (is_rev and is_correct) else (0, 220, 255), width=2)
-                font_lbl = get_font(24, bold=True)
-                c_lbl = c_info.get("label", "")
-                draw.text((cx + card_w // 2, (lbl_y1 + lbl_y2) // 2), c_lbl, font=font_lbl, fill=(255, 255, 255), anchor="mm")
+                # Bottom Detail Label Container (Only if label is explicitly provided and non-empty)
+                c_lbl = str(c_info.get("label", "")).strip()
+                if c_lbl:
+                    lbl_y1 = box_y1 - 85
+                    lbl_y2 = box_y1 - 15
+                    draw.rounded_rectangle([cx + 16, lbl_y1, cx + card_w - 16, lbl_y2], radius=16, fill=(18, 22, 34), outline=(46, 204, 113) if (is_rev and is_correct) else (0, 220, 255), width=2)
+                    font_lbl = get_font(22, bold=True)
+                    draw.text((cx + card_w // 2, (lbl_y1 + lbl_y2) // 2), c_lbl, font=font_lbl, fill=(255, 255, 255), anchor="mm")
 
-                # Reveal Pulse Indicator over correct card
-                if is_rev and is_correct:
-                    pulse_box = int(6 * math.sin(t * 8.0))
-                    draw.rounded_rectangle([cx - pulse_box, int(cy + c_bob) - pulse_box, cx + card_w + pulse_box, int(cy + card_h + c_bob) + pulse_box], radius=26, outline=(46, 204, 113), width=4)
-
-            # Bottom Explanation Banner in Reveal
+            # Bottom Bar in 4-Cards Mode:
+            # During Countdown: High-intensity neon countdown progress bar!
+            # During Reveal: Solid crimson explanation banner!
+            bar_x0, bar_y0 = 180, h - 130
+            bar_w, bar_h = w - 360, 95
             if is_rev:
                 exp_text = q_data.get("explanation_text") or f"ANSWER: CARD {correct_opt}!"
-                draw.rounded_rectangle([180 + 4, h - 130 + 5, w - 180 + 4, h - 35 + 5], radius=24, fill=(0, 0, 0, 110))
-                draw.rounded_rectangle([180, h - 130, w - 180, h - 35], radius=24, fill=(214, 38, 38), outline=(255, 255, 255), width=3)
+                draw.rounded_rectangle([bar_x0 + 4, bar_y0 + 5, bar_x0 + bar_w + 4, bar_y0 + bar_h + 5], radius=24, fill=(0, 0, 0, 110))
+                draw.rounded_rectangle([bar_x0, bar_y0, bar_x0 + bar_w, bar_y0 + bar_h], radius=24, fill=(214, 38, 38), outline=(255, 255, 255), width=3)
                 font_exp = get_font(32, bold=True)
-                draw.text((w // 2, h - 82), exp_text, font=font_exp, fill=(255, 255, 255), anchor="mm")
+                draw.text((w // 2, bar_y0 + bar_h // 2), exp_text, font=font_exp, fill=(255, 255, 255), anchor="mm")
+            elif is_cd:
+                self._draw_timer_bar(draw, canvas, bar_x0, bar_y0 + 5, bar_w, bar_h - 10, max(0.0, min(1.0, 1.0 - cd_elapsed)), t)
 
         # Sub-Mode B: 1-Scene Clue Anomaly Riddle (e.g. WHO IS THE SLEEPWALKER?)
         else:
@@ -2004,7 +2139,8 @@ class QuizVideoEngineV2:
 
     def _draw_this_or_that_169(self, draw: ImageDraw.ImageDraw, a: dict[str, Any], b: dict[str, Any], bob: float, t: float):
         # Left Side A
-        draw.rounded_rectangle([220, int(280 + bob), 880, int(720 + bob)], radius=32, fill=a.get("color", (46, 204, 113)), outline=(255, 255, 255), width=6)
+        col_a = tuple(a.get("color", (46, 204, 113)))
+        draw.rounded_rectangle([220, int(280 + bob), 880, int(720 + bob)], radius=32, fill=col_a, outline=(255, 255, 255), width=6)
         name_a = a["name"]
         fsize_a = 48
         while fsize_a >= 26:
@@ -2014,11 +2150,12 @@ class QuizVideoEngineV2:
             fsize_a -= 2
         draw.text((550, int(460 + bob)), name_a, font=get_font(fsize_a, bold=True), fill=(255, 255, 255), anchor="mm")
         draw.rounded_rectangle([380, int(570 + bob), 720, int(660 + bob)], radius=24, fill=(255, 255, 255), outline=(30, 30, 30), width=3)
-        act_a = a.get("action", "HIT LIKE" if self.is_english else "BẤM LIKE")
+        act_a = a.get("action", self.i18n.get("action_like", "HIT LIKE"))
         draw.text((550, int(615 + bob)), act_a, font=get_font(36, bold=True), fill=(30, 30, 30), anchor="mm")
         
         # Right Side B
-        draw.rounded_rectangle([1040, int(280 - bob), 1700, int(720 - bob)], radius=32, fill=b.get("color", (230, 126, 34)), outline=(255, 255, 255), width=6)
+        col_b = tuple(b.get("color", (230, 126, 34)))
+        draw.rounded_rectangle([1040, int(280 - bob), 1700, int(720 - bob)], radius=32, fill=col_b, outline=(255, 255, 255), width=6)
         name_b = b["name"]
         fsize_b = 48
         while fsize_b >= 26:
@@ -2028,7 +2165,7 @@ class QuizVideoEngineV2:
             fsize_b -= 2
         draw.text((1370, int(460 - bob)), name_b, font=get_font(fsize_b, bold=True), fill=(255, 255, 255), anchor="mm")
         draw.rounded_rectangle([1200, int(570 - bob), 1540, int(660 - bob)], radius=24, fill=(255, 255, 255), outline=(30, 30, 30), width=3)
-        act_b = b.get("action", "LEAVE COMMENT" if self.is_english else "BÌNH LUẬN")
+        act_b = b.get("action", self.i18n.get("action_comment", "LEAVE COMMENT"))
         draw.text((1370, int(615 - bob)), act_b, font=get_font(34, bold=True), fill=(30, 30, 30), anchor="mm")
         
         # Center VS Badge with Pulsating Aura
@@ -2038,7 +2175,8 @@ class QuizVideoEngineV2:
 
     def _draw_this_or_that_916(self, draw: ImageDraw.ImageDraw, a: dict[str, Any], b: dict[str, Any], bob: float, t: float):
         # Top Side A
-        draw.rounded_rectangle([100, 480, 980, 800], radius=28, fill=a.get("color", (46, 204, 113)), outline=(255, 255, 255), width=6)
+        col_a = tuple(a.get("color", (46, 204, 113)))
+        draw.rounded_rectangle([100, 480, 980, 800], radius=28, fill=col_a, outline=(255, 255, 255), width=6)
         name_a = a["name"]
         fsize_a = 44
         while fsize_a >= 24:
@@ -2047,11 +2185,12 @@ class QuizVideoEngineV2:
                 break
             fsize_a -= 2
         draw.text((540, 600), name_a, font=get_font(fsize_a, bold=True), fill=(255, 255, 255), anchor="mm")
-        act_a = a.get("action", "HIT LIKE" if self.is_english else "BẤM LIKE")
+        act_a = a.get("action", self.i18n.get("action_like", "HIT LIKE"))
         draw.text((540, 720), act_a, font=get_font(36, bold=True), fill=(255, 255, 255), anchor="mm")
         
         # Bottom Side B
-        draw.rounded_rectangle([100, 880, 980, 1200], radius=28, fill=b.get("color", (230, 126, 34)), outline=(255, 255, 255), width=6)
+        col_b = tuple(b.get("color", (230, 126, 34)))
+        draw.rounded_rectangle([100, 880, 980, 1200], radius=28, fill=col_b, outline=(255, 255, 255), width=6)
         name_b = b["name"]
         fsize_b = 44
         while fsize_b >= 24:
@@ -2060,7 +2199,7 @@ class QuizVideoEngineV2:
                 break
             fsize_b -= 2
         draw.text((540, 1000), name_b, font=get_font(fsize_b, bold=True), fill=(255, 255, 255), anchor="mm")
-        act_b = b.get("action", "LEAVE COMMENT" if self.is_english else "BÌNH LUẬN")
+        act_b = b.get("action", self.i18n.get("action_comment", "LEAVE COMMENT"))
         draw.text((540, 1120), act_b, font=get_font(36, bold=True), fill=(255, 255, 255), anchor="mm")
         
         # Center VS
@@ -2100,7 +2239,7 @@ class QuizVideoEngineV2:
 
             # Top Badge: Emerald Tag
             draw.rounded_rectangle([215, int(235 + bob), 485, int(285 + bob)], radius=14, fill=(46, 204, 113), outline=(255, 255, 255), width=2)
-            draw.text((350, int(260 + bob)), "CORRECT ANSWER" if self.is_english else "ĐÁP ÁN ĐÚNG", font=get_font(20, bold=True), fill=(255, 255, 255), anchor="mm")
+            draw.text((350, int(260 + bob)), self.i18n.get("correct", "CORRECT ANSWER"), font=get_font(20, bold=True), fill=(255, 255, 255), anchor="mm")
 
             if rev_img_p and Path(rev_img_p).exists():
                 self._paste_reveal_slot(canvas, draw, rev_img_p, "16:9", scale, bob)
@@ -2130,7 +2269,7 @@ class QuizVideoEngineV2:
 
                 # Correct Tag (Top Left)
                 draw.rounded_rectangle([215, int(235 + bob), 465, int(285 + bob)], radius=14, fill=(46, 204, 113), outline=(255, 255, 255), width=2)
-                draw.text((340, int(260 + bob)), "CORRECT ANSWER" if self.is_english else "ĐÁP ÁN CHÍNH XÁC", font=get_font(20, bold=True), fill=(255, 255, 255), anchor="mm")
+                draw.text((340, int(260 + bob)), self.i18n.get("correct", "CORRECT ANSWER"), font=get_font(20, bold=True), fill=(255, 255, 255), anchor="mm")
 
                 # Center Photo with Golden Trim & Shadow
                 canvas.paste(cached_rev, (525 - cached_rev.width // 2, int(480 + bob - cached_rev.height // 2)), cached_rev)
@@ -2143,7 +2282,7 @@ class QuizVideoEngineV2:
                 rev_img_p = q_data.get("reveal_image_path")
                 if is_cd and rev_img_p and Path(rev_img_p).exists() and q_data.get("progressive_unblur"):
                     draw.rounded_rectangle([180, int(250 + bob), 880, int(740 + bob)], radius=32, fill=(255, 255, 255), outline=(240, 200, 50), width=6)
-                    draw.text((530, int(285 + bob)), "AI ĐÂY NHỈ? (ĐANG RÕ DẦN)", font=get_font(28, bold=True), fill=(230, 126, 34), anchor="mm")
+                    draw.text((530, int(285 + bob)), self.i18n.get("unblur", "WHO IS THIS? (REVEALING)"), font=get_font(28, bold=True), fill=(230, 126, 34), anchor="mm")
                     
                     blur_r = max(0, int(36 * (1.0 - cd_elapsed)))
                     hero_raw = Image.open(rev_img_p).convert("RGBA")
@@ -2163,10 +2302,30 @@ class QuizVideoEngineV2:
 
                     # Category Tag (Top Left)
                     draw.rounded_rectangle([215, int(235 + bob), 485, int(290 + bob)], radius=16, fill=(231, 76, 60), outline=(255, 255, 255), width=2)
-                    draw.text((350, int(262 + bob)), q_data.get("universe", "GENERAL KNOWLEDGE" if self.is_english else "ĐỐ VUI KIẾN THỨC"), font=get_font(22, bold=True), fill=(255, 255, 255), anchor="mm")
+                    universe_default = "FUSSBALL-QUIZ" if self.is_german else ("GENERAL KNOWLEDGE" if not self.is_vietnamese else "ĐỐ VUI KIẾN THỨC")
+                    draw.text((350, int(262 + bob)), q_data.get("universe", universe_default), font=get_font(22, bold=True), fill=(255, 255, 255), anchor="mm")
 
+                    career_steps = q_data.get("career_steps", [])
                     clues = q_data.get("clues", [])
-                    if clues:
+                    if career_steps:
+                        n_steps = len(career_steps)
+                        step_h = min(68, int(390 / max(1, n_steps)))
+                        step_gap = max(8, min(14, int(40 / max(1, n_steps - 1))))
+                        ladder_start_y = int(320 + bob)
+                        for si, club in enumerate(career_steps):
+                            sy = int(ladder_start_y + si * (step_h + step_gap))
+                            draw.rounded_rectangle([215, sy, 835, sy + step_h], radius=16, fill=(30, 44, 75), outline=(255, 204, 0), width=2)
+                            num_diam = step_h - 14
+                            num_x = 225
+                            num_y = sy + 7
+                            draw.ellipse([num_x, num_y, num_x + num_diam, num_y + num_diam], fill=(255, 204, 0))
+                            draw.text((num_x + num_diam // 2, num_y + num_diam // 2), str(si + 1), font=get_font(20, bold=True), fill=(20, 20, 20), anchor="mm")
+                            f_sz = 24 if len(club) > 22 else 28
+                            draw.text((num_x + num_diam + 20, sy + step_h // 2), club, font=get_font(f_sz, bold=True), fill=(255, 255, 255), anchor="lm")
+                        draw.rounded_rectangle([215, int(740 + bob), 835, int(800 + bob)], radius=16, fill=(18, 24, 40), outline=(0, 220, 255), width=2)
+                        guide_career = self.i18n.get("choose_player", "[ CHOOSE THE PLAYER ON RIGHT ]")
+                        draw.text((525, int(770 + bob)), guide_career, font=get_font(22, bold=True), fill=(0, 230, 255), anchor="mm")
+                    elif clues:
                         num_clues = len(clues[:3])
                         if num_clues == 1:
                             c = clues[0]
@@ -2175,7 +2334,8 @@ class QuizVideoEngineV2:
                                 c_y = int(480 + bob - c_img.height // 2)
                                 canvas.paste(c_img, (525 - c_img.width // 2, c_y), c_img)
                                 draw.rounded_rectangle([215, int(670 + bob), 835, int(750 + bob)], radius=18, fill=(18, 24, 40), outline=(0, 220, 255), width=2)
-                                paste_icon_with_text(canvas, draw, (525, int(710 + bob)), c.get("prompt", "WHICH COUNTRY IS THIS?"), get_font(24, bold=True), "point_right", icon_size=32, icon_side="right", fill=(0, 230, 255))
+                                prompt_default = "WELCHER SPIELER IST DAS?" if self.is_german else ("WHICH COUNTRY IS THIS?" if not self.is_vietnamese else "ĐOÁN TÊN QUỐC GIA")
+                                paste_icon_with_text(canvas, draw, (525, int(710 + bob)), c.get("prompt", prompt_default), get_font(24, bold=True), "point_right", icon_size=32, icon_side="right", fill=(0, 230, 255))
                             else:
                                 # Glowing 3D Vector Quiz Crest (Question Orb)
                                 orb_cx, orb_cy = 525, int(425 + bob)
@@ -2186,27 +2346,31 @@ class QuizVideoEngineV2:
 
                                 # Golden Clue Banner
                                 draw.rounded_rectangle([215, int(545 + bob), 835, int(655 + bob)], radius=22, fill=(35, 46, 75), outline=(255, 215, 0), width=3)
-                                draw_comic_text(draw, (525, int(600 + bob)), f"GỢI Ý: {c.get('word', '')}", font=get_font(40, bold=True), fill=(255, 215, 0), stroke_color=(15, 18, 25), stroke_width=3)
+                                clue_pfx = f"{self.i18n.get('hint', 'HINT')}: "
+                                draw_comic_text(draw, (525, int(600 + bob)), f"{clue_pfx}{c.get('word', '')}", font=get_font(40, bold=True), fill=(255, 215, 0), stroke_color=(15, 18, 25), stroke_width=3)
 
                                 # Clean Guide Tag at Bottom with 3D pointing right icon!
                                 draw.rounded_rectangle([215, int(690 + bob), 835, int(765 + bob)], radius=18, fill=(18, 24, 40), outline=(0, 220, 255), width=2)
-                                guide_r = "CHOOSE THE ANSWER ON RIGHT" if self.is_english else "CHỌN ĐÁP ÁN BÊN PHẢI"
-                                paste_icon_with_text(canvas, draw, (525, int(727 + bob)), guide_r, get_font(22 if self.is_english else 24, bold=True), "point_right", icon_size=32, icon_side="right", fill=(0, 230, 255))
+                                guide_r = self.i18n.get("choose_answer", "[ CHOOSE THE ANSWER ON RIGHT ]")
+                                paste_icon_with_text(canvas, draw, (525, int(727 + bob)), guide_r, get_font(22 if not self.is_vietnamese else 24, bold=True), "point_right", icon_size=32, icon_side="right", fill=(0, 230, 255))
                         elif num_clues == 2:
                             for ci, c in enumerate(clues[:2]):
                                 cy = int(340 + ci * 140 + bob)
                                 draw.rounded_rectangle([215, cy, 835, cy + 110], radius=22, fill=(35, 46, 75), outline=(255, 215, 0), width=3)
-                                clue_lbl2 = f"HINT {ci+1}: " if self.is_english else f"GỢI Ý {ci+1}: "
+                                clue_lbl2 = f"{self.i18n.get('hint', 'HINT')} {ci+1}: "
                                 draw_comic_text(draw, (525, cy + 55), f"{clue_lbl2}{c.get('word', '')}", font=get_font(38, bold=True), fill=(255, 215, 0), stroke_color=(15, 18, 25), stroke_width=3)
                             draw.rounded_rectangle([215, int(670 + bob), 835, int(745 + bob)], radius=18, fill=(18, 24, 40), outline=(0, 220, 255), width=2)
-                            guide_r2 = "[ CHOOSE THE ANSWER ON RIGHT ]" if self.is_english else "[ CHỌN PHƯƠNG ÁN ĐÚNG BÊN PHẢI ]"
+                            guide_r2 = self.i18n.get("choose_answer", "[ CHOOSE THE ANSWER ON RIGHT ]")
                             draw.text((525, int(707 + bob)), guide_r2, font=get_font(24, bold=True), fill=(0, 230, 255), anchor="mm")
                         else:
                             for ci, c in enumerate(clues[:3]):
                                 cy = int(325 + ci * 130 + bob)
                                 draw.rounded_rectangle([215, cy, 835, cy + 105], radius=20, fill=(35, 46, 75), outline=(255, 215, 0), width=3)
-                                clue_lbl3 = f"HINT {ci+1}: " if self.is_english else f"GỢI Ý {ci+1}: "
+                                clue_lbl3 = f"{self.i18n.get('hint', 'HINT')} {ci+1}: "
                                 draw_comic_text(draw, (525, cy + 52), f"{clue_lbl3}{c.get('word', '')}", font=get_font(34, bold=True), fill=(255, 215, 0), stroke_color=(15, 18, 25), stroke_width=3)
+                            draw.rounded_rectangle([215, int(730 + bob), 835, int(795 + bob)], radius=18, fill=(18, 24, 40), outline=(0, 220, 255), width=2)
+                            guide_r3 = self.i18n.get("choose_answer", "[ CHOOSE THE ANSWER ON RIGHT ]")
+                            draw.text((525, int(762 + bob)), guide_r3, font=get_font(22, bold=True), fill=(0, 230, 255), anchor="mm")
                     else:
                         orb_cx, orb_cy = 525, int(420 + bob)
                         for gr in range(110, 50, -10):
@@ -2214,8 +2378,8 @@ class QuizVideoEngineV2:
                         draw.ellipse([orb_cx - 70, orb_cy - 70, orb_cx + 70, orb_cy + 70], fill=(30, 42, 70), outline=(255, 215, 0), width=4)
                         draw_comic_text(draw, (orb_cx, orb_cy), "?", font=get_font(80, bold=True), fill=(255, 215, 0), stroke_color=(15, 18, 25), stroke_width=4)
                         draw.rounded_rectangle([215, int(550 + bob), 835, int(740 + bob)], radius=24, fill=(35, 46, 75), outline=(0, 220, 255), width=3)
-                        no_clue_t = "CHOOSE THE CORRECT ANSWER" if self.is_english else "CHỌN ĐÁP ÁN ĐÚNG"
-                        draw_comic_text(draw, (525, int(645 + bob)), no_clue_t, font=get_font(34 if self.is_english else 38, bold=True), fill=(255, 255, 255), stroke_color=(15, 18, 25), stroke_width=3)
+                        no_clue_t = self.i18n.get("choose_correct_answer", "CHOOSE THE CORRECT ANSWER")
+                        draw_comic_text(draw, (525, int(645 + bob)), no_clue_t, font=get_font(34 if not self.is_vietnamese else 38, bold=True), fill=(255, 255, 255), stroke_color=(15, 18, 25), stroke_width=3)
 
         # Right Side: Multiple Choice Pills (eSports Cyber Capsules)
         choices = self._normalize_choices(q_data)
@@ -2289,15 +2453,15 @@ class QuizVideoEngineV2:
             scale = max(0.1, min(1.0, t_since_rev * 3.5))
             
             self._paste_reveal_slot(canvas, draw, rev_img_p, "9:16", scale, 0)
-            rev_header_916 = "CORRECT!" if self.is_english else "CHÍNH XÁC!"
+            rev_header_916 = self.i18n.get("correct", "CORRECT!")
             draw.text((540, 475), rev_header_916, font=get_font(30, bold=True), fill=(46, 204, 113), anchor="mm")
             
 
         elif is_cd and rev_img_p and Path(rev_img_p).exists() and q_data.get("progressive_unblur"):
             self._paste_reveal_slot(canvas, draw, rev_img_p, "9:16", 1, 0,
                                     blur=max(0, int(36 * (1.0 - cd_elapsed))))
-            unblur_txt = "WHO IS THIS? (REVEALING)" if self.is_english else "AI ĐÂY NHỈ? (ĐANG RÕ DẦN)"
-            draw.text((540, 475), unblur_txt, font=get_font(26 if self.is_english else 28, bold=True), fill=(230, 126, 34), anchor="mm")
+            unblur_txt = self.i18n.get("unblur", "WHO IS THIS? (REVEALING)")
+            draw.text((540, 475), unblur_txt, font=get_font(26 if not self.is_vietnamese else 28, bold=True), fill=(230, 126, 34), anchor="mm")
             
 
         else:
@@ -2308,7 +2472,7 @@ class QuizVideoEngineV2:
 
                 # Correct Tag
                 draw.rounded_rectangle([100, int(455 + bob), 360, int(505 + bob)], radius=14, fill=(46, 204, 113), outline=(255, 255, 255), width=2)
-                draw.text((230, int(480 + bob)), "CORRECT ANSWER" if self.is_english else "ĐÁP ÁN ĐÚNG", font=get_font(20, bold=True), fill=(255, 255, 255), anchor="mm")
+                draw.text((230, int(480 + bob)), self.i18n.get("correct", "CORRECT ANSWER"), font=get_font(20, bold=True), fill=(255, 255, 255), anchor="mm")
 
                 # Center Photo
                 canvas.paste(cached_rev_916, (540 - cached_rev_916.width // 2, int(615 + bob - cached_rev_916.height // 2)), cached_rev_916)
@@ -2329,7 +2493,7 @@ class QuizVideoEngineV2:
                             c_y = int(585 + bob - c_img.height // 2)
                             canvas.paste(c_img, (540 - c_img.width // 2, c_y), c_img)
                             draw.rounded_rectangle([120, int(725 + bob), 960, int(795 + bob)], radius=16, fill=(18, 24, 40), outline=(0, 220, 255), width=2)
-                            paste_icon_with_text(canvas, draw, (540, int(760 + bob)), c.get("prompt", "WHICH COUNTRY IS THIS?"), get_font(22, bold=True), "point_down", icon_size=28, icon_side="right", fill=(0, 230, 255))
+                            paste_icon_with_text(canvas, draw, (540, int(760 + bob)), c.get("prompt", self.i18n.get("choose_player", "WHICH PLAYER IS THIS?")), get_font(22, bold=True), "point_down", icon_size=28, icon_side="right", fill=(0, 230, 255))
                         else:
                             draw.rounded_rectangle([60 + 4, int(430 + bob) + 6, 1020 + 4, int(820 + bob) + 6], radius=30, fill=(0, 0, 0, 95))
                             draw.rounded_rectangle([60, int(430 + bob), 1020, int(820 + bob)], radius=30, fill=(22, 29, 48), outline=(0, 220, 255), width=4)
@@ -2341,22 +2505,22 @@ class QuizVideoEngineV2:
                             draw_comic_text(draw, (orb_cx, orb_cy), "?", font=get_font(72, bold=True), fill=(255, 215, 0), stroke_width=3)
 
                             draw.rounded_rectangle([120, int(655 + bob), 960, int(755 + bob)], radius=20, fill=(35, 46, 75), outline=(255, 215, 0), width=3)
-                            clue_pfx = "HINT: " if self.is_english else "GỢI Ý: "
+                            clue_pfx = f"{self.i18n.get('hint', 'HINT')}: "
                             draw_comic_text(draw, (540, int(705 + bob)), f"{clue_pfx}{c.get('word', '')}", font=get_font(40, bold=True), fill=(255, 215, 0), stroke_width=3)
                     elif num_clues == 2:
                         for ci, c in enumerate(clues[:2]):
                             cy = int(460 + ci * 135 + bob)
                             draw.rounded_rectangle([60, cy, 1020, cy + 110], radius=22, fill=(35, 46, 75), outline=(255, 215, 0), width=3)
-                            clue_pfx2 = f"HINT {ci+1}: " if self.is_english else f"GỢI Ý {ci+1}: "
+                            clue_pfx2 = f"{self.i18n.get('hint', 'HINT')} {ci+1}: "
                             draw_comic_text(draw, (540, cy + 55), f"{clue_pfx2}{c.get('word', '')}", font=get_font(38, bold=True), fill=(255, 215, 0), stroke_color=(15, 18, 25), stroke_width=3)
                         draw.rounded_rectangle([100, int(740 + bob), 980, int(810 + bob)], radius=16, fill=(18, 24, 40), outline=(0, 220, 255), width=2)
-                        guide_d = "CHOOSE THE ANSWER BELOW" if self.is_english else "CHỌN PHƯƠNG ÁN ĐÚNG DƯỚI ĐÂY"
-                        paste_icon_with_text(canvas, draw, (540, int(775 + bob)), guide_d, get_font(22 if self.is_english else 24, bold=True), "point_down", icon_size=32, icon_side="right", fill=(0, 230, 255))
+                        guide_d = self.i18n.get("choose_answer", "CHOOSE THE ANSWER BELOW").replace("ON RIGHT", "BELOW").replace("RECHTS", "UNTEN").replace("BÊN PHẢI", "DƯỚI ĐÂY")
+                        paste_icon_with_text(canvas, draw, (540, int(775 + bob)), guide_d, get_font(22 if not self.is_vietnamese else 24, bold=True), "point_down", icon_size=32, icon_side="right", fill=(0, 230, 255))
                     else:
                         for ci, c in enumerate(clues[:3]):
                             cy = int(440 + ci * 115 + bob)
                             draw.rounded_rectangle([60, cy, 1020, cy + 95], radius=20, fill=(35, 46, 75), outline=(255, 215, 0), width=3)
-                            clue_pfx3 = f"HINT {ci+1}: " if self.is_english else f"GỢI Ý {ci+1}: "
+                            clue_pfx3 = f"{self.i18n.get('hint', 'HINT')} {ci+1}: "
                             draw_comic_text(draw, (540, cy + 47), f"{clue_pfx3}{c.get('word', '')}", font=get_font(34, bold=True), fill=(255, 215, 0), stroke_color=(15, 18, 25), stroke_width=3)
                 else:
                     draw.rounded_rectangle([60 + 4, int(430 + bob) + 6, 1020 + 4, int(820 + bob) + 6], radius=30, fill=(0, 0, 0, 95))
@@ -2369,8 +2533,8 @@ class QuizVideoEngineV2:
                 draw_comic_text(draw, (orb_cx, orb_cy), "?", font=get_font(72, bold=True), fill=(255, 215, 0), stroke_width=3)
 
                 draw.rounded_rectangle([120, int(655 + bob), 960, int(755 + bob)], radius=20, fill=(35, 46, 75), outline=(255, 215, 0), width=3)
-                no_clue_916 = "CHOOSE THE CORRECT ANSWER" if self.is_english else "CHỌN ĐÁP ÁN ĐÚNG"
-                draw_comic_text(draw, (540, int(705 + bob)), no_clue_916, font=get_font(36 if self.is_english else 38, bold=True), fill=(255, 255, 255), stroke_width=3)
+                no_clue_916 = self.i18n.get("choose_correct_answer", "CHOOSE THE CORRECT ANSWER")
+                draw_comic_text(draw, (540, int(705 + bob)), no_clue_916, font=get_font(36 if not self.is_vietnamese else 38, bold=True), fill=(255, 255, 255), stroke_width=3)
 
         # Bottom: Choices (Cyber Capsules in 9:16)
         choices = self._normalize_choices(q_data)
@@ -2465,7 +2629,7 @@ class QuizVideoEngineV2:
         cy = cur_y + cur_h // 2
         draw.line([(cx - 14, cy + 2), (cx - 4, cy + 12), (cx + 18, cy - 10)], fill=(255, 255, 255), width=6)
         
-        ans_prefix = "ANSWER: " if self.is_english else "ĐÁP ÁN: "
+        ans_prefix = self.i18n.get("answer_prefix", "ANSWER: ")
         full_ans_txt = f"{ans_prefix}{text}"
         max_text_w = max(50, cur_w - 130)
         base_size = 34 if self.opt.aspect_ratio == "9:16" else 46
@@ -2536,6 +2700,8 @@ class QuizVideoEngineV2:
         _paste_audio(voice_track, voice_files["intro"], 0.0, vol=1.0)
         for i in range(1, len(events) - 1):
             ev = events[i]
+            if "whoosh" in sfx_files and ev["q_start"] > 0.5:
+                _paste_audio(sfx_track, sfx_files["whoosh"], ev["q_start"] - 0.2, vol=0.6)
             _paste_audio(voice_track, voice_files[f"q{i}_q"], ev["q_start"], vol=1.0)
             _paste_audio(sfx_track, sfx_files["countdown"], ev["cd_start"], vol=0.85)
             _paste_audio(sfx_track, sfx_files["ding"], ev["rev_start"], vol=0.95)

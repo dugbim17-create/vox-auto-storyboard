@@ -182,6 +182,7 @@ class QuizJsonDialog(QDialog):
 
         self.ai_format_combo = QComboBox()
         self.ai_format_combo.addItems([
+            "🎁 Multi-Mode Gameshow (Trộn 5 chế độ: Thẻ bài, Trắc nghiệm, Ô chữ, Hộp quà, 1vs1)",
             "QuizMystra 4-Cards (So sánh 4 ảnh)",
             "QuizMystra Visual Riddle (Phá án toàn cảnh)",
             "Trắc nghiệm danh lam (Photo Reveal)",
@@ -310,7 +311,14 @@ class QuizJsonDialog(QDialog):
             return
 
         fmt_idx = self.ai_format_combo.currentIndex()
-        fmt_type = "4cards" if fmt_idx == 0 else ("riddle" if fmt_idx == 1 else "photo_reveal")
+        if fmt_idx == 0:
+            fmt_type = "multi_mode"
+        elif fmt_idx == 1:
+            fmt_type = "4cards"
+        elif fmt_idx == 2:
+            fmt_type = "riddle"
+        else:
+            fmt_type = "photo_reveal"
         count = self.ai_count_spin.value()
         context = self.read_episode_context()
         profile_key = getattr(self, 'channel_profile', '')

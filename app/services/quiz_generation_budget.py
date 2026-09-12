@@ -5,8 +5,8 @@ from pathlib import Path
 
 class GenerationBudget:
     def __init__(self, directory: Path, limit: int = 6):
-        if not 1 <= limit <= 6:
-            raise ValueError('Image budget must be between 1 and 6')
+        if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 120:
+            raise ValueError('Image budget must be between 1 and 120')
         self.directory = Path(directory) / 'generation-ledger'
         self.directory.mkdir(parents=True, exist_ok=True)
         self.limit = limit
@@ -24,7 +24,7 @@ class GenerationBudget:
                 return path
             except FileExistsError:
                 continue
-        raise RuntimeError('Image budget exhausted; maximum six submissions including failures')
+        raise RuntimeError(f'Image budget exhausted; maximum {self.limit} submissions including failures')
 
     def complete(self, ticket: Path) -> None:
         ticket.with_suffix('.done').touch(exist_ok=False)
