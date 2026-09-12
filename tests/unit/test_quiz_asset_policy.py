@@ -68,3 +68,52 @@ def test_policy_model_allowlist_excludes_unusable_and_fallback_only_models():
     assert 'gpt-image-1.5' not in MODELS
     # grok-imagine-image is provider-fallback-only; not selectable for quiz assets.
     assert 'grok-imagine-image' not in MODELS
+
+
+def test_quota_failure_falls_back_to_gemini_and_records_lineage(tmp_path):
+    from app.services.quiz_asset_policy import FALLBACK_MODEL, PRIMARY_MODEL, resolve_with_policy
+
+    q = {'id': 'q1', 'question': 'Who?', 'answer_text': 'Cristiano Ronaldo', 'mode': 'photo_reveal',
+         'reveal_image_prompt': 'Chibi portrait of a footballer'}
+    calls = []
+
+    async def generate(prompt, output_path, model):
+        calls.append(model)
+        if model == PRIMARY_MODEL:
+            raise RuntimeError('All candidate models failed: CLIProxy image (gpt-image-2) HTTP 429: quota exceeded')
+        Image.new('RGB', (1536, 1024), 'blue').save(output_path)
+        return output_path
+
+    out = tmp_path / 'out'
+    first = asyncio.run(resolve_with_policy([q], out, PRIMARY_MODEL, True, generate))
+    assert calls == [PRIMARY_MODEL, FALLBACK_MODEL]
+    record = first[0]['reveal_image_rights']
+    assert record['model'] == FALLBACK_MODEL
+    assert record['fallback_from'] == PRIMARY_MODEL
+    assert record['fallback_reason'] == 'quota'
+    sidecar = Path(first[0]['reveal_image_path']).with_suffix('.rights.json')
+    assert json.loads(sidecar.read_text(encoding='utf-8'))['fallback_from'] == PRIMARY_MODEL
+    assert 'fallback from' in (out / 'ASSET_CREDITS.txt').read_text(encoding='utf-8')
+
+    async def forbidden(prompt, output_path, model):
+        raise AssertionError('a valid fallback asset must be reused, not regenerated')
+
+    second = asyncio.run(resolve_with_policy([q], out, PRIMARY_MODEL, True, forbidden))
+    assert second[0]['reveal_image_path'] == first[0]['reveal_image_path']
+    assert calls == [PRIMARY_MODEL, FALLBACK_MODEL]
+
+
+def test_moderation_failure_never_reroutes_to_fallback(tmp_path):
+    from app.services.quiz_asset_policy import PRIMARY_MODEL, resolve_with_policy
+
+    q = {'id': 'q1', 'question': 'Who?', 'answer_text': 'Cristiano Ronaldo', 'mode': 'photo_reveal',
+         'reveal_image_prompt': 'Chibi portrait of a footballer'}
+    calls = []
+
+    async def generate(prompt, output_path, model):
+        calls.append(model)
+        raise RuntimeError('All candidate models failed: CLIProxy image (gpt-image-2) HTTP 400: moderation_blocked')
+
+    with pytest.raises(RuntimeError, match='moderation'):
+        asyncio.run(resolve_with_policy([q], tmp_path / 'out', PRIMARY_MODEL, True, generate))
+    assert calls == [PRIMARY_MODEL]

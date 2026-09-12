@@ -17,8 +17,19 @@ VERSION = 'quiz-rights-v1'
 # Quiz-asset allowlist. gpt-image-1.5 stays out: its CLIProxy route ignores `size`
 # (fixed 1145x1374, 5:6) and can never satisfy the layout gate (probes 2026-09-12).
 # grok-imagine-image is provider-fallback-only and not selectable for quiz assets.
-MODELS = {'gpt-image-2', 'gemini-3.1-flash-image'}
+PRIMARY_MODEL = 'gpt-image-2'
+# Safe quota fallback (2026-09-12): correct 3:2 geometry and policy-clean across
+# the 28-asset baseline. Never fall back onto a size-ignoring model.
+FALLBACK_MODEL = 'gemini-3.1-flash-image'
+MODELS = {PRIMARY_MODEL, FALLBACK_MODEL}
 LICENSES = {'CC0-1.0', 'CC-BY-3.0', 'CC-BY-4.0', 'PUBLIC-DOMAIN', 'OWNED'}
+# Quota / rate-limit markers as raised by the image adapters (e.g. "HTTP 429").
+# Moderation and validation failures never match and are never rerouted.
+_QUOTA_MARKERS = ('http 429', 'quota', 'rate limit', 'rate_limit')
+
+
+def quota_exhausted(error: Exception) -> bool:
+    return any(marker in str(error).lower() for marker in _QUOTA_MARKERS)
 
 
 def digest(path):
@@ -32,7 +43,11 @@ def valid_record(path, record, *, prompt=None, model=None):
         if not isinstance(record, dict) or record.get('sha256') != digest(path):
             return False
         if record.get('kind') == 'ai_generated':
-            return (record.get('policy') == VERSION and record.get('model') == model
+            # A safe-fallback asset stays valid for the requested primary model as
+            # long as its lineage is recorded (record["fallback_from"]).
+            model_matches = record.get('model') == model or (
+                record.get('model') == FALLBACK_MODEL and record.get('fallback_from') == model)
+            return (record.get('policy') == VERSION and model_matches
                     and record.get('prompt') == prompt and bool(prompt))
         return (record.get('kind') == 'licensed' and record.get('reviewed') is True
                 and has_review_receipt(path, record)
@@ -79,13 +94,25 @@ async def resolve_with_policy(questions, output_dir, model, allow_generation, ge
                 if target.exists():
                     target = output_dir / f'{identity}-{uuid4().hex[:8]}.png'
                     sidecar = target.with_suffix('.rights.json')
-                await generate(prompt, target, model=model)
+                generated_by = model
+                fallback_from = None
+                try:
+                    await generate(prompt, target, model=model)
+                except Exception as exc:  # noqa: BLE001 - reroute only quota failures
+                    if model != PRIMARY_MODEL or not quota_exhausted(exc):
+                        raise
+                    generated_by = FALLBACK_MODEL
+                    fallback_from = model
+                    await generate(prompt, target, model=generated_by)
                 inspect_layout(target, kind, generated=True)
                 with Image.open(target) as image:
                     image.load()
-                record = {'kind': 'ai_generated', 'policy': VERSION, 'model': model,
+                record = {'kind': 'ai_generated', 'policy': VERSION, 'model': generated_by,
                           'prompt': prompt, 'sha256': digest(target),
                           'legal_clearance': False, 'visual_review': 'required'}
+                if fallback_from:
+                    record['fallback_from'] = fallback_from
+                    record['fallback_reason'] = 'quota'
                 sidecar.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding='utf-8')
         owner[field] = str(target.resolve())
         owner[rights_field] = record
@@ -113,6 +140,7 @@ async def resolve_with_policy(questions, output_dir, model, allow_generation, ge
         if r['kind'] == 'licensed':
             credits.append(f"{r['path']}\n{r['author']} | {r['source_url']} | {r['license']} | {r['license_url']} | Changes: {r['changes']}")
         else:
-            credits.append(f"{r['path']}\nAI illustration | {r['model']} | visual review required")
+            lineage = f" (fallback from {r['fallback_from']}, {r['fallback_reason']})" if r.get('fallback_from') else ''
+            credits.append(f"{r['path']}\nAI illustration | {r['model']}{lineage} | visual review required")
     (output_dir / 'ASSET_CREDITS.txt').write_text('\n\n'.join(credits), encoding='utf-8')
     return result
