@@ -54,8 +54,29 @@ _FONT_CANDIDATES_REGULAR = (
     "/System/Library/Fonts/Supplemental/Arial.ttf",
 )
 
+# Locale CJK fonts (2026-09-12): default candidates carry no Hangul/Kana glyphs
+# (cmap-verified), so ko/ja documents would render tofu. set_locale_font()
+# activates the repo's quiz_locales font for the document language; the loader
+# fails closed when the font file is missing.
+_LOCALE_FONT_LOADER: Callable[[int, bool], Any] | None = None
+
+
+def set_locale_font(lang_code: str | None) -> None:
+    global _LOCALE_FONT_LOADER
+    code = str(lang_code or "").lower().split("-")[0].split("_")[0]
+    if code in ("ko", "ja"):
+        from app.services.quiz_locales import font_factory
+        _LOCALE_FONT_LOADER = font_factory(code, None)
+    else:
+        _LOCALE_FONT_LOADER = None
+
 
 def get_font(size: int, bold: bool = True):
+    if _LOCALE_FONT_LOADER is not None:
+        try:
+            return _LOCALE_FONT_LOADER(size, bold)
+        except Exception:
+            pass
     candidates = _FONT_CANDIDATES_BOLD if bold else _FONT_CANDIDATES_REGULAR
     for path in candidates:
         if os.path.exists(path):
@@ -245,6 +266,24 @@ def get_difficulty_badge(q_idx: int, total_q: int = 10, lang: str = "vi") -> tup
             return ("KHÓ (HARD)", (230, 126, 34))
         else:
             return ("BÁ ĐẠO (GOD)", (231, 76, 60))
+    elif code == "ko":
+        if ratio <= 0.35:
+            return ("쉬움", (46, 204, 113))
+        elif ratio <= 0.70:
+            return ("보통", (241, 196, 15))
+        elif ratio <= 0.90:
+            return ("어려움", (230, 126, 34))
+        else:
+            return ("파이널 보스", (231, 76, 60))
+    elif code == "ja":
+        if ratio <= 0.35:
+            return ("簡単", (46, 204, 113))
+        elif ratio <= 0.70:
+            return ("普通", (241, 196, 15))
+        elif ratio <= 0.90:
+            return ("難しい", (230, 126, 34))
+        else:
+            return ("ファイナルボス", (231, 76, 60))
     else:  # en and default fallback
         if ratio <= 0.35:
             return ("EASY", (46, 204, 113))
@@ -900,6 +939,7 @@ class QuizVideoEngineV2:
 
     def __init__(self, options: QuizRenderOptions | None = None):
         self.opt = options or QuizRenderOptions()
+        set_locale_font(self.lang_code)
         if self.opt.tts_engine == "piper" and self.opt.channel_profile:
             from app.services.quiz_channel_profiles import get_profile
 
@@ -1715,7 +1755,7 @@ class QuizVideoEngineV2:
                     start_x = 210 + spacing / 2
                     for ci, c in enumerate(clues):
                         cx = int(start_x + ci * spacing)
-                        c_col = c.get("color", (41, 128, 185))
+                        c_col = tuple(c.get("color", (41, 128, 185)))
                         c_lbl = c.get("word", "")
                         card_w = min(420, int(spacing * 0.75))
                         card_h = min(420, int(spacing * 0.75))
@@ -1791,7 +1831,7 @@ class QuizVideoEngineV2:
                     start_y = 460 + spacing_y / 2
                     for ci, c in enumerate(clues):
                         cy = int(start_y + ci * spacing_y)
-                        c_col = c.get("color", (41, 128, 185))
+                        c_col = tuple(c.get("color", (41, 128, 185)))
                         c_lbl = c.get("word", "")
                         card_s = min(340, int(spacing_y * 0.85))
                         
@@ -2053,7 +2093,7 @@ class QuizVideoEngineV2:
             bx = xs[bi]
             by = int(320 + bob)
             bw, bh = 420, 420
-            col = b.get("color", (46, 204, 113))
+            col = tuple(b.get("color", (46, 204, 113)))
             
             # Box shadow & body
             draw.rounded_rectangle([bx - bw//2 + 4, by + 6, bx + bw//2 + 4, by + bh + 6], radius=32, fill=(0, 0, 0, 70))
@@ -2082,7 +2122,7 @@ class QuizVideoEngineV2:
             bx = 540
             by = int(ys[bi] + bob)
             bw, bh = 760, 210
-            col = b.get("color", (46, 204, 113))
+            col = tuple(b.get("color", (46, 204, 113)))
             
             draw.rounded_rectangle([bx - bw//2, by, bx + bw//2, by + bh], radius=24, fill=(255, 255, 255), outline=col, width=6)
             draw.rectangle([bx - 20, by, bx + 20, by + bh], fill=col)
