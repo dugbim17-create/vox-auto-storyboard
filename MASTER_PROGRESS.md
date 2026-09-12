@@ -668,3 +668,18 @@
   - Dòng storyboard/vox (vox_cinematic_engine + pipelines) không có hoạt động source từ 2026-08-19; MASTER_PLAN dừng log ở P6-T04 (P6-T05+ chưa có entry)
 - Next eligible task: (a) chạy 1 batch thật sinh câu mới qua đường AI (chốt nghẽn quota/chibi); (b) chốt sống/chết dòng engine cũ; (c) dọn script produce_*/render_* untracked ở root
 
+### TASK QZ-T02 — Canary đường ảnh AI + loại gpt-image-1.5 khỏi quiz allowlist — DONE
+
+- Finished: 2026-09-12 (commit `687dca0`)
+- Bằng chứng canary (1 chat + 6 ảnh): `output/qa_ai_batch_20260912_canary1/`
+  - `gemini-3.6-flash-high` (chat) OK 9.5s — 3 câu tiếng Đức multi_mode, contract pass
+  - `gemini-3.1-flash-image` (Antigravity) OK 1264x848 (13.8s) — moderation/quota KHÔNG còn chặn (khác hôm 11/9)
+  - `gpt-image-1.5` (CLIProxy) — route BỎ QUA `size`, cố định 1145x1374 (5:6) ở CẢ 2 request (51.4s / 62.0s) → trượt cổng layout quiz mọi slot
+  - `gpt-image-2` (CLIProxy) OK đúng size 1536x1024 (27.3s); quota 429 hôm 11/9 đã hết
+  - `grok-imagine-image` OK 1248x832 đúng 3:2 (7.9s) — nhận vai fallback-cuối
+  - `gpt-image-2` + chibi người qua ĐƯỜNG POLICY (`resolve_with_policy`) OK 1536x1024 (28.7s), rights `ai_generated` ghi đủ, KHÔNG chữ nhúng (wrapper chống logo/text hoạt động)
+- Config sau sửa: provider cliproxy mặc định `gpt-image-2`; fallback `[gpt-image-2, gpt-image-1.5, grok-imagine-image]` (grok cuối, không bao giờ mặc định); quiz allowlist `{gpt-image-2, gemini-3.1-flash-image}`; 2 pin test mới
+- Tests: 327 passed (quiz suite + flowkit/provider)
+- Known limitations: `gpt-image-1.5` chỉ còn hữu dụng ngoài quiz (route không tôn trọng size); 5 pipeline dòng cũ hardcode 1.5 — chờ chốt dòng cũ; ảnh AI có thể chèn chữ nhúng nếu KHÔNG đi qua wrapper policy (quiz luôn dùng policy + review hình); quota gpt-image-2 nhạy theo thời điểm
+- Next eligible task: (a) chốt model chính thức cho kênh khi làm tập mới (28/28 ảnh baseline là gemini, GUI mặc định là gpt-image-2); (b) chốt sống/chết dòng engine cũ; (c) dọn script untracked ở root
+
