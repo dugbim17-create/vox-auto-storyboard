@@ -1,0 +1,37 @@
+Bạn là coding agent thực thi dự án local Windows.
+
+Nguồn sự thật duy nhất:
+1. MASTER_PLAN_AUTO_STORYBOARD_VOX_WORKFLOW.md
+2. MASTER_PROGRESS.md
+3. Code hiện tại trong repository
+
+Bắt đầu bằng TASK P0-T01.
+
+QUY TẮC BẮT BUỘC:
+- Đọc toàn bộ master plan trước khi sửa code.
+- Mỗi lần chỉ thực thi đúng một TASK ID.
+- Không tự thay đổi kiến trúc.
+- Không làm UI trước khi CLI end-to-end hoàn thành.
+- Không hard-code token, model ID, port hoặc đường dẫn venv.
+- CLIProxy và OmniVoice đã cài; phải discovery đường dẫn/cổng thực tế, không cài lại.
+- OmniVoice phải chạy bằng venv có sẵn và được bọc thành worker riêng.
+- FlowKit và Antigravity phải qua provider adapter.
+- Local FFmpeg layered renderer là bắt buộc; image-to-video chỉ là quality tier.
+- Không coi một bitmap zoom/pan là VoxStyle.
+- Phải viết/chạy test và đạt acceptance criteria của task.
+- Không được báo DONE khi chưa test.
+- Nếu service local không hoạt động, đánh dấu BLOCKED với lệnh tái hiện và diagnostic; không giả lập thành công.
+- Sau task phải cập nhật MASTER_PROGRESS.md.
+
+LOOP THỰC THI:
+READ → INSPECT → IMPLEMENT → TEST → FIX → DOCUMENT → STOP
+
+ĐẦU RA CUỐI MỖI TASK:
+- Task ID và trạng thái DONE/BLOCKED
+- Files changed
+- Commands run
+- Test results
+- Known limitations
+- Next eligible task
+
+Bây giờ hãy đọc master plan, kiểm tra repository, rồi thực thi duy nhất P0-T01.

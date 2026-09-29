@@ -24,6 +24,8 @@ root. The launcher script handles this.)
 
 from __future__ import annotations
 
+raise RuntimeError("OmniVoice retired. This worker is disabled; use VieNeu CPU/GPU or Piper.")
+
 import logging
 import os
 from pathlib import Path

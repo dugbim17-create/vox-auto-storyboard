@@ -63,6 +63,7 @@ class OmniVoiceProvider:
         ``output_path`` is sent as an absolute path so the WAV lands where the
         orchestrator expects regardless of the worker's cwd.
         """
+        raise OmniVoiceUnavailable("OmniVoice đã được gỡ. Dùng VieNeu CPU/GPU hoặc Piper để tạo audio và nhập audio vào dự án.")
         out_wav = _resolve_output_path(request.output_path)
         payload = {
             "text": request.text,
@@ -127,6 +128,7 @@ class OmniVoiceProvider:
 
     async def health(self) -> ProviderHealth:
         """Check worker health."""
+        return ProviderHealth(status="unavailable", detail={"error": "OmniVoice retired; use VieNeu or Piper."})
         try:
             resp = await self._client.get(f"{self.base_url}/health")
         except httpx.TransportError as exc:
@@ -141,7 +143,7 @@ class OmniVoiceProvider:
 
     async def warmup(self) -> None:
         """Preload the worker model (one-time)."""
-        await self._client.post(f"{self.base_url}/warmup")
+        raise OmniVoiceUnavailable("OmniVoice retired; automatic loading is disabled.")
 
     # ------------------------------------------------------------------ #
     # Lifecycle
